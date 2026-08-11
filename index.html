@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Salat Otomatis & Hitung Mundur</title>
+    <style>
+        :root {
+            --primary: #2d3748;
+            --accent: #319795;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .status-lokasi {
+            text-align: center;
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .countdown-box {
+            background: linear-gradient(135deg, var(--accent), #2b6cb0);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .countdown-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .countdown-timer {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .jadwal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .jadwal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #edf2f7;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .jadwal-item.aktif {
+            background: #feebc8;
+            border-left: 5px solid #dd6b20;
+            color: #dd6b20;
+            transform: scale(1.02);
+        }
+
+        .waktu {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Jadwal Salat Digital</h1>
+    <div class="status-lokasi" id="lokasi-text">Mendeteksi lokasi Anda...</div>
+
+    <div class="countdown-box">
+        <div class="countdown-title" id="next-sholat-title">Menghitung...</div>
+        <div class="countdown-timer" id="countdown-timer">00:00:00</div>
+    </div>
+
+    <div class="jadwal-list">
+        <div class="jadwal-item" id="item-Subuh"><span>Subuh</span><span class="waktu" id="time-Subuh">--:--</span></div>
+        <div class="jadwal-item" id="item-Dzuhur"><span>Dzuhur</span><span class="waktu" id="time-Dzuhur">--:--</span></div>
+        <div class="jadwal-item" id="item-Ashar"><span>Ashar</span><span class="waktu" id="time-Ashar">--:--</span></div>
+        <div class="jadwal-item" id="item-Maghrib"><span>Maghrib</span><span class="waktu" id="time-Maghrib">--:--</span></div>
+        <div class="jadwal-item" id="item-Isya"><span>Isya</span><span class="waktu" id="time-Isya">--:--</span></div>
+    </div>
+</div>
+
+<script>
+    const SUDUT_SUBUH = 20;
+    const SUDUT_ISYA = 18;
+    let jadwalHariIni = {};
+
+    const rad = (d) => (d * Math.PI) / 180;
+    const deg = (r) => (r * 180) / Math.PI;
+
+    function hitungJadwalSalat(lat, lng) {
+        const sekarang = new Date();
+        const tahun = sekarang.getFullYear();
+        const bulan = sekarang.getMonth() + 1;
+        const tanggal = sekarang.getDate();
+        const timezone = 7; 
+
+        const jd = 367 * tahun - Math.floor((7 * (tahun + Math.floor((bulan + 9) / 12))) / 4) + Math.floor((275 * bulan) / 9) + tanggal + 1721013.5 - (timezone / 24);
+        const d = jd - 2451545.0;
+
+        const g = (357.529 + 0.98560028 * d) % 360;
+        const q = (280.459 + 0.98564736 * d) % 360;
+        const L = (q + 1.915 * Math.sin(rad(g)) + 0.020 * Math.sin(rad(2 * g))) % 360;
+        const e = 23.439 - 0.00000036 * d;
+        
+        let ra = deg(Math.atan2(Math.cos(rad(e)) * Math.sin(rad(L)), Math.cos(rad(L)))) / 15;
+        if (ra < 0) ra += 24;
+        
+        const dec = deg(Math.asin(Math.sin(rad(e)) * Math.sin(rad(L))));
+        const q_jam = q / 15;
+        let eot = q_jam - ra;
+        if (eot < -12) eot += 24;
+        if (eot > 12) eot -= 24;
+        eot = eot * 60;
+
+        let midDay = 12 + timezone - (lng / 15) - (eot / 60);
+
+        const hitungHourAngle = (sudut, tipe) => {
+            let n = 0;
+            if (tipe === 'subuh_isya') {
+                n = -Math.sin(rad(sudut)) - (Math.sin(rad(lat)) * Math.sin(rad(dec)));
+            } else if (tipe === 'ashar') {
+                const acotZ = 1 + Math.abs(lat - dec);
+                const z = deg(Math.atan(1 / acotZ));
+                n = Math.sin(rad(z)) - (Math.sin(rad(lat)) * Math.sin(rad(dec)));
+            } else if (tipe === 'maghrib') {
+                n = Math.sin(rad(-0.833)) - (Math.sin(rad(lat)) * Math.sin(rad(dec)));
+            }
+            const dnd = Math.cos(rad(lat)) * Math.cos(rad(dec));
+            const hitungAcos = n / dnd;
+            if (hitungAcos > 1 || hitungAcos < -1) return 0;
+            return deg(Math.acos(hitungAcos)) / 15;
+        };
+
+        const haSubuh = hitungHourAngle(SUDUT_SUBUH, 'subuh_isya');
+        const haAshar = hitungHourAngle(1, 'ashar');
+        const haMaghrib = hitungHourAngle(0, 'maghrib');
+        const haIsya = hitungHourAngle(SUDUT_ISYA, 'subuh_isya');
+
+        const formatWaktu = (desimalJam) => {
+            let totalMenit = Math.floor(desimalJam * 60) + 2; 
+            if (totalMenit < 0) totalMenit += 1440;
+            const jam = Math.floor(totalMenit / 60) % 24;
+            const menit = totalMenit % 60;
+            return `${String(jam).padStart(2, '0')}:${String(menit).padStart(2, '0')}`;
+        };
+
+        jadwalHariIni = {
+            'Subuh': formatWaktu(midDay - haSubuh),
+            'Dzuhur': formatWaktu(midDay),
+            'Ashar': formatWaktu(midDay + haAshar),
+            'Maghrib': formatWaktu(midDay + haMaghrib),
+            'Isya': formatWaktu(midDay + haIsya)
+        };
+
+        for (const [nama, waktu] of Object.entries(jadwalHariIni)) {
+            document.getElementById(`time-${nama}`).innerText = waktu + " WIB";
+        }
+    }
+        function jalankanCountdown() {
+        if (Object.keys(jadwalHariIni).length === 0) return;
+
+        const sekarang = new Date();
+        const jamSekarang = sekarang.getHours();
+        const menitSekarang = sekarang.getMinutes();
+        const detikSekarang = sekarang.getSeconds();
+        const totalDetikSekarang = (jamSekarang * 3600) + (menitSekarang * 60) + detikSekarang;
+
+        let targetNama = 'Subuh';
+        let targetDetik = 0;
+        const urutanSalat = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
+        let ditemukan = false;
+
+        for (const nama of urutanSalat) {
+            const [h, m] = jadwalHariIni[nama].split(':').map(Number);
+            const totalDetikTarget = (h * 3600) + (m * 60);
+
+            if (totalDetikTarget > totalDetikSekarang) {
+                targetNama = nama;
+                targetDetik = totalDetikTarget;
+                ditemukan = true;
+                break;
+            }
+        }
+
+        let sisaDetik = 0;
+        if (!ditemukan) {
+            targetNama = 'Subuh (Besok)';
+            const [h, m] = jadwalHariIni['Subuh'].split(':').map(Number);
+            const totalDetikTarget = (h * 3600) + (m * 60);
+            sisaDetik = (24 * 3600 - totalDetikSekarang) + totalDetikTarget;
+        } else {
+            sisaDetik = targetDetik - totalDetikSekarang;
+        }
+
+        urutanSalat.forEach(nama => document.getElementById(`item-${nama}`).classList.remove('aktif'));
+        
+        if (ditemukan) {
+            const indeksAktif = urutanSalat.indexOf(targetNama) - 1;
+            if (indeksAktif >= 0) {
+                document.getElementById(`item-${urutanSalat[indeksAktif]}`).classList.add('aktif');
+            } else {
+                document.getElementById(`item-Isya`).classList.add('aktif');
+            }
+        } else {
+            document.getElementById(`item-Isya`).classList.add('aktif');
+        }
+
+        const jamSisa = Math.floor(sisaDetik / 3600);
+        const menitSisa = Math.floor((sisaDetik % 3600) / 60);
+        const detikSisa = sisaDetik % 60;
+
+        document.getElementById('next-sholat-title').innerText = `Menuju ${targetNama}`;
+        document.getElementById('countdown-timer').innerText = 
+            `${String(jamSisa).padStart(2, '0')}:${String(menitSisa).padStart(2, '0')}:${String(detikSisa).padStart(2, '0')}`;
+    }
+
+    function dapatkanLokasi() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    document.getElementById('lokasi-text').innerText = `Lokasi Aktif: Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`;
+                    hitungJadwalSalat(lat, lng);
+                    setInterval(jalankanCountdown, 1000);
+                },
+                (error) => {
+                    document.getElementById('lokasi-text').innerText = "Gagal memuat lokasi otomatis. Menggunakan default (Bengkalis).";
+                    hitungJadwalSalat(1.4784, 102.1384); 
+                    setInterval(jalankanCountdown, 1000);
+                }
+            );
+        } else {
+            document.getElementById('lokasi-text').innerText = "Browser tidak mendukung deteksi lokasi.";
+        }
+    }
+
+    window.onload = dapatkanLokasi;
+</script>
+
+</body>
+  </html>
+                                                                    
