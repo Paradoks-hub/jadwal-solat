@@ -1,139 +1,341 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jadwal Salat Otomatis & Hitung Mundur</title>
-    <style>
-        :root {
-            --primary: #2d3748;
-            --accent: #319795;
-            --bg: #f7fafc;
-            --card-bg: #ffffff;
-            --text: #2d3748;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal Salat — Lintasan Matahari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --ink: #16232a;
+        --muted: #64777d;
+        --bg: #e9eeec;
+        --card: #ffffff;
+        --teal: #0e5f5a;
+        --teal-dark: #0a3d3f;
+        --gold: #b8862e;
+        --gold-light: #e2b45c;
+        --line: #dfe6e4;
+        --ring: rgba(184, 134, 46, 0.35);
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+        /* sky states, swapped by JS as the day progresses */
+        --sky-a: #dce9e6;
+        --sky-b: #eef4ee;
+        --sky-dot: rgba(14, 95, 90, 0.18);
+    }
 
-        .container {
-            max-width: 500px;
-            width: 100%;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
+    * { box-sizing: border-box; }
 
-        h1 {
-            text-align: center;
-            margin-top: 0;
-            color: var(--primary);
-            font-size: 24px;
-        }
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        margin: 0;
+        padding: 28px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
 
-        .status-lokasi {
-            text-align: center;
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 20px;
-        }
+    .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -20px rgba(14, 62, 60, 0.35), 0 2px 8px rgba(14,62,60,0.06);
+        border: 1px solid var(--line);
+    }
 
-        .countdown-box {
-            background: linear-gradient(135deg, var(--accent), #2b6cb0);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
+    /* geometric motif strip — nod to Islamic tilework, kept quiet */
+    .motif {
+        height: 6px;
+        background: repeating-linear-gradient(
+            135deg,
+            var(--teal) 0px, var(--teal) 6px,
+            var(--gold) 6px, var(--gold) 12px,
+            transparent 12px, transparent 18px
+        );
+        opacity: 0.85;
+    }
 
-        .countdown-title {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.9;
-        }
+    header {
+        padding: 26px 26px 6px;
+        text-align: center;
+    }
 
-        .countdown-timer {
-            font-size: 36px;
-            font-weight: bold;
-            margin: 5px 0;
-        }
+    .eyebrow {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 700;
+    }
 
-        .jadwal-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    h1 {
+        margin: 0 0 10px;
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 27px;
+        color: var(--teal-dark);
+        letter-spacing: 0.01em;
+    }
 
-        .jadwal-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: #edf2f7;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
+    .meta {
+        margin: 2px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
 
-        .jadwal-item.aktif {
-            background: #feebc8;
-            border-left: 5px solid #dd6b20;
-            color: #dd6b20;
-            transform: scale(1.02);
-        }
+    /* --- signature element: the sun's daily arc, dawn to dusk --- */
+    .arc-wrap {
+        position: relative;
+        margin: 22px 14px 8px;
+        aspect-ratio: 300 / 132;
+    }
 
-        .waktu {
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
+    /* background layer only — clipped to rounded corners */
+    .arc-sky {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+        background-image:
+            radial-gradient(circle, var(--sky-dot) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+        transition: background 0.8s ease;
+        overflow: hidden;
+    }
+
+    .arc-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* markers live outside the clipped layer so labels never get cut off */
+    .arc-markers, .arc-now { position: absolute; inset: 0; }
+
+    .arc-svg path {
+        fill: none;
+        stroke: rgba(14, 62, 60, 0.28);
+        stroke-width: 1.4;
+        stroke-dasharray: 1 6;
+        stroke-linecap: round;
+    }
+
+    .arc-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .arc-marker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 3px rgba(14, 95, 90, 0.12);
+    }
+
+    .arc-marker.aktif .dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .arc-marker .label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .arc-marker.aktif .label { color: var(--gold); }
+
+    .arc-now {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px 2px rgba(184, 134, 46, 0.55);
+        transform: translate(-50%, -50%);
+        transition: left 1s linear, top 1s linear;
+    }
+
+    .countdown-box {
+        margin: 18px 20px 0;
+        background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .countdown-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    .countdown-timer {
+        font-size: 38px;
+        font-weight: 800;
+        margin: 6px 0 0;
+        font-variant-numeric: tabular-nums;
+        color: var(--gold-light);
+        letter-spacing: 0.02em;
+    }
+
+    .jadwal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 20px 20px 24px;
+    }
+
+    .jadwal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f4f7f6;
+        border-radius: 10px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .jadwal-item .nama {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 14.5px;
+    }
+
+    .jadwal-item .nama svg { flex-shrink: 0; }
+
+    .jadwal-item.aktif {
+        background: #fbf3e4;
+        border-left-color: var(--gold);
+    }
+
+    .jadwal-item.aktif .nama { color: var(--teal-dark); }
+
+    .waktu {
+        font-size: 16.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--teal-dark);
+    }
+
+    .jadwal-item.aktif .waktu { color: var(--gold); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .arc-now { transition: none; }
+    }
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Jadwal Salat Digital</h1>
-    <div class="status-lokasi" id="lokasi-text">Mendeteksi lokasi Anda...</div>
+<div class="card">
+    <div class="motif"></div>
+    <header>
+        <p class="eyebrow">Jadwal Salat</p>
+        <h1>Lintasan Waktu Salat</h1>
+        <p class="meta" id="tanggal-text">—</p>
+        <p class="meta" id="lokasi-text">Mendeteksi lokasi Anda…</p>
+    </header>
+
+    <div class="arc-wrap" id="arc-wrap">
+        <div class="arc-sky">
+            <svg class="arc-svg" viewBox="0 0 300 132" preserveAspectRatio="none">
+                <path d="M38,112 Q150,6 262,112" />
+            </svg>
+        </div>
+        <div class="arc-markers" id="arc-markers"></div>
+        <div class="arc-now" id="arc-now" style="left:38px; top:112px;"></div>
+    </div>
 
     <div class="countdown-box">
-        <div class="countdown-title" id="next-sholat-title">Menghitung...</div>
-        <div class="countdown-timer" id="countdown-timer">00:00:00</div>
+        <p class="countdown-title" id="next-sholat-title">Menghitung…</p>
+        <p class="countdown-timer" id="countdown-timer">00:00:00</p>
     </div>
 
     <div class="jadwal-list">
-        <div class="jadwal-item" id="item-Subuh"><span>Subuh</span><span class="waktu" id="time-Subuh">--:--</span></div>
-        <div class="jadwal-item" id="item-Dzuhur"><span>Dzuhur</span><span class="waktu" id="time-Dzuhur">--:--</span></div>
-        <div class="jadwal-item" id="item-Ashar"><span>Ashar</span><span class="waktu" id="time-Ashar">--:--</span></div>
-        <div class="jadwal-item" id="item-Maghrib"><span>Maghrib</span><span class="waktu" id="time-Maghrib">--:--</span></div>
-        <div class="jadwal-item" id="item-Isya"><span>Isya</span><span class="waktu" id="time-Isya">--:--</span></div>
+        <div class="jadwal-item" id="item-Subuh">
+            <span class="nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 4a5 5 0 1 0 3 9 6 6 0 1 1-3-9Z"/></svg>Subuh</span>
+            <span class="waktu" id="time-Subuh">--:--</span>
+        </div>
+        <div class="jadwal-item" id="item-Dzuhur">
+            <span class="nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>Dzuhur</span>
+            <span class="waktu" id="time-Dzuhur">--:--</span>
+        </div>
+        <div class="jadwal-item" id="item-Ashar">
+            <span class="nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="15" r="4"/><path d="M12 2v3M4 15H2M22 15h-2M6 8l1.5 1.5M18 8l-1.5 1.5M3 21h18"/></svg>Ashar</span>
+            <span class="waktu" id="time-Ashar">--:--</span>
+        </div>
+        <div class="jadwal-item" id="item-Maghrib">
+            <span class="nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18h18M6 18a6 6 0 0 1 12 0M12 8v4M9.5 10.5 12 8l2.5 2.5"/></svg>Maghrib</span>
+            <span class="waktu" id="time-Maghrib">--:--</span>
+        </div>
+        <div class="jadwal-item" id="item-Isya">
+            <span class="nama"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>Isya</span>
+            <span class="waktu" id="time-Isya">--:--</span>
+        </div>
     </div>
 </div>
 
 <script>
     const SUDUT_SUBUH = 20;
     const SUDUT_ISYA = 18;
+    const urutanSalat = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
     let jadwalHariIni = {};
 
     const rad = (d) => (d * Math.PI) / 180;
     const deg = (r) => (r * 180) / Math.PI;
+    const toMenit = (waktu) => {
+        const [h, m] = waktu.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    // titik pada kurva quadratic-bezier yang sama dengan path SVG (M38,112 Q150,6 262,112)
+    function titikArc(t) {
+        const P0 = { x: 38, y: 112 }, P1 = { x: 150, y: 6 }, P2 = { x: 262, y: 112 };
+        const it = 1 - t;
+        const x = it * it * P0.x + 2 * it * t * P1.x + t * t * P2.x;
+        const y = it * it * P0.y + 2 * it * t * P1.y + t * t * P2.y;
+        return { left: (x / 300) * 100 + '%', top: (y / 132) * 100 + '%' };
+    }
+
+    // posisi titik salat & matahari dipetakan proporsional ke jam asli (arcRange),
+    // supaya pergerakan matahari jujur — tidak dipercepat atau diperlambat
+    let arcRange = { start: 0, end: 1440 };
+    const JARAK_MINIMAL = 0.09; // jarak minimum antar label (0-1) biar tidak numpuk
+
+    function tanggalHariIni() {
+        const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        const teks = new Date().toLocaleDateString('id-ID', opts);
+        document.getElementById('tanggal-text').innerText = teks;
+    }
 
     function hitungJadwalSalat(lat, lng) {
         const sekarang = new Date();
         const tahun = sekarang.getFullYear();
         const bulan = sekarang.getMonth() + 1;
         const tanggal = sekarang.getDate();
-        const timezone = 7; 
+        const timezone = 7;
 
         const jd = 367 * tahun - Math.floor((7 * (tahun + Math.floor((bulan + 9) / 12))) / 4) + Math.floor((275 * bulan) / 9) + tanggal + 1721013.5 - (timezone / 24);
         const d = jd - 2451545.0;
@@ -142,10 +344,10 @@
         const q = (280.459 + 0.98564736 * d) % 360;
         const L = (q + 1.915 * Math.sin(rad(g)) + 0.020 * Math.sin(rad(2 * g))) % 360;
         const e = 23.439 - 0.00000036 * d;
-        
+
         let ra = deg(Math.atan2(Math.cos(rad(e)) * Math.sin(rad(L)), Math.cos(rad(L)))) / 15;
         if (ra < 0) ra += 24;
-        
+
         const dec = deg(Math.asin(Math.sin(rad(e)) * Math.sin(rad(L))));
         const q_jam = q / 15;
         let eot = q_jam - ra;
@@ -160,7 +362,7 @@
             if (tipe === 'subuh_isya') {
                 n = -Math.sin(rad(sudut)) - (Math.sin(rad(lat)) * Math.sin(rad(dec)));
             } else if (tipe === 'ashar') {
-                const acotZ = 1 + Math.abs(lat - dec);
+                const acotZ = 1 + Math.tan(rad(Math.abs(lat - dec)));
                 const z = deg(Math.atan(1 / acotZ));
                 n = Math.sin(rad(z)) - (Math.sin(rad(lat)) * Math.sin(rad(dec)));
             } else if (tipe === 'maghrib') {
@@ -178,7 +380,7 @@
         const haIsya = hitungHourAngle(SUDUT_ISYA, 'subuh_isya');
 
         const formatWaktu = (desimalJam) => {
-            let totalMenit = Math.floor(desimalJam * 60) + 2; 
+            let totalMenit = Math.floor(desimalJam * 60) + 2;
             if (totalMenit < 0) totalMenit += 1440;
             const jam = Math.floor(totalMenit / 60) % 24;
             const menit = totalMenit % 60;
@@ -196,8 +398,66 @@
         for (const [nama, waktu] of Object.entries(jadwalHariIni)) {
             document.getElementById(`time-${nama}`).innerText = waktu + " WIB";
         }
+
+        renderArc();
     }
-        function jalankanCountdown() {
+
+    function renderArc() {
+        arcRange.start = toMenit(jadwalHariIni['Subuh']);
+        arcRange.end = toMenit(jadwalHariIni['Isya']) + 60;
+
+        // posisi asli, sebanding jam beneran
+        let t = urutanSalat.map(nama =>
+            Math.min(1, Math.max(0, (toMenit(jadwalHariIni[nama]) - arcRange.start) / (arcRange.end - arcRange.start)))
+        );
+
+        // dorong titik yang kejepit biar labelnya tidak numpuk, jarak lain dibiarkan apa adanya
+        for (let i = 1; i < t.length; i++) {
+            if (t[i] - t[i - 1] < JARAK_MINIMAL) t[i] = t[i - 1] + JARAK_MINIMAL;
+        }
+        for (let i = t.length - 2; i >= 0; i--) {
+            if (t[i + 1] - t[i] < JARAK_MINIMAL) t[i] = t[i + 1] - JARAK_MINIMAL;
+        }
+
+        const wrap = document.getElementById('arc-markers');
+        wrap.innerHTML = '';
+        urutanSalat.forEach((nama, i) => {
+            const pos = titikArc(t[i]);
+            const el = document.createElement('div');
+            el.className = 'arc-marker';
+            el.id = `arc-${nama}`;
+            el.style.left = pos.left;
+            el.style.top = pos.top;
+            el.innerHTML = `<span class="dot"></span><span class="label">${nama}</span>`;
+            wrap.appendChild(el);
+        });
+    }
+
+    function perbaruiPosisiMatahari(totalMenitSekarang) {
+        // proporsional murni terhadap jam asli — tidak memakai penyesuaian label,
+        // supaya kecepatan gerak matahari selalu jujur
+        const t = Math.min(1, Math.max(0, (totalMenitSekarang - arcRange.start) / (arcRange.end - arcRange.start)));
+        const pos = titikArc(t);
+        const now = document.getElementById('arc-now');
+        now.style.left = pos.left;
+        now.style.top = pos.top;
+    }
+
+    function perbaruiLangit(nama) {
+        const wrap = document.getElementById('arc-wrap');
+        const skema = {
+            'Subuh':   ['#e7dcc9', '#f3ede0'],
+            'Dzuhur':  ['#dcecec', '#f2fafa'],
+            'Ashar':   ['#f0e3c9', '#f8f1de'],
+            'Maghrib': ['#f0c8a8', '#f7e0c8'],
+            'Isya':    ['#c9d3e0', '#e4ebf3']
+        };
+        const [a, b] = skema[nama] || skema['Dzuhur'];
+        wrap.style.setProperty('--sky-a', a);
+        wrap.style.setProperty('--sky-b', b);
+    }
+
+    function jalankanCountdown() {
         if (Object.keys(jadwalHariIni).length === 0) return;
 
         const sekarang = new Date();
@@ -205,10 +465,10 @@
         const menitSekarang = sekarang.getMinutes();
         const detikSekarang = sekarang.getSeconds();
         const totalDetikSekarang = (jamSekarang * 3600) + (menitSekarang * 60) + detikSekarang;
+        const totalMenitSekarang = jamSekarang * 60 + menitSekarang;
 
         let targetNama = 'Subuh';
         let targetDetik = 0;
-        const urutanSalat = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
         let ditemukan = false;
 
         for (const nama of urutanSalat) {
@@ -233,41 +493,49 @@
             sisaDetik = targetDetik - totalDetikSekarang;
         }
 
-        urutanSalat.forEach(nama => document.getElementById(`item-${nama}`).classList.remove('aktif'));
-        
+        urutanSalat.forEach(nama => {
+            document.getElementById(`item-${nama}`).classList.remove('aktif');
+            const marker = document.getElementById(`arc-${nama}`);
+            if (marker) marker.classList.remove('aktif');
+        });
+
+        let namaAktif = 'Isya';
         if (ditemukan) {
             const indeksAktif = urutanSalat.indexOf(targetNama) - 1;
-            if (indeksAktif >= 0) {
-                document.getElementById(`item-${urutanSalat[indeksAktif]}`).classList.add('aktif');
-            } else {
-                document.getElementById(`item-Isya`).classList.add('aktif');
-            }
-        } else {
-            document.getElementById(`item-Isya`).classList.add('aktif');
+            namaAktif = indeksAktif >= 0 ? urutanSalat[indeksAktif] : 'Isya';
         }
+        document.getElementById(`item-${namaAktif}`).classList.add('aktif');
+        const markerAktif = document.getElementById(`arc-${namaAktif}`);
+        if (markerAktif) markerAktif.classList.add('aktif');
+        perbaruiLangit(namaAktif);
 
         const jamSisa = Math.floor(sisaDetik / 3600);
         const menitSisa = Math.floor((sisaDetik % 3600) / 60);
         const detikSisa = sisaDetik % 60;
 
         document.getElementById('next-sholat-title').innerText = `Menuju ${targetNama}`;
-        document.getElementById('countdown-timer').innerText = 
+        document.getElementById('countdown-timer').innerText =
             `${String(jamSisa).padStart(2, '0')}:${String(menitSisa).padStart(2, '0')}:${String(detikSisa).padStart(2, '0')}`;
+
+        perbaruiPosisiMatahari(totalMenitSekarang);
     }
 
     function dapatkanLokasi() {
+        tanggalHariIni();
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    document.getElementById('lokasi-text').innerText = `Lokasi Aktif: Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`;
+                    document.getElementById('lokasi-text').innerText = `Lokasi aktif · ${lat.toFixed(2)}, ${lng.toFixed(2)}`;
                     hitungJadwalSalat(lat, lng);
+                    jalankanCountdown();
                     setInterval(jalankanCountdown, 1000);
                 },
                 (error) => {
-                    document.getElementById('lokasi-text').innerText = "Gagal memuat lokasi otomatis. Menggunakan default (Bengkalis).";
-                    hitungJadwalSalat(1.4784, 102.1384); 
+                    document.getElementById('lokasi-text').innerText = "Lokasi otomatis gagal · memakai default Bengkalis";
+                    hitungJadwalSalat(1.4784, 102.1384);
+                    jalankanCountdown();
                     setInterval(jalankanCountdown, 1000);
                 }
             );
@@ -280,5 +548,5 @@
 </script>
 
 </body>
-  </html>
-                                                                    
+    </html>
+    
