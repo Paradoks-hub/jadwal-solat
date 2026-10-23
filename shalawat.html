@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shalawat Nabi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --ink: #16232a;
+        --muted: #64777d;
+        --bg: #e9eeec;
+        --card: #ffffff;
+        --teal: #0e5f5a;
+        --teal-dark: #0a3d3f;
+        --gold: #b8862e;
+        --gold-light: #e2b45c;
+        --line: #dfe6e4;
+        --ring: rgba(184, 134, 46, 0.35);
+
+        /* sky states, swapped by JS as the day progresses */
+        --sky-a: #dce9e6;
+        --sky-b: #eef4ee;
+        --sky-dot: rgba(14, 95, 90, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        margin: 0;
+        padding: 28px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -20px rgba(14, 62, 60, 0.35), 0 2px 8px rgba(14,62,60,0.06);
+        border: 1px solid var(--line);
+    }
+
+    /* geometric motif strip — nod to Islamic tilework, kept quiet */
+    .motif {
+        height: 6px;
+        background: repeating-linear-gradient(
+            135deg,
+            var(--teal) 0px, var(--teal) 6px,
+            var(--gold) 6px, var(--gold) 12px,
+            transparent 12px, transparent 18px
+        );
+        opacity: 0.85;
+    }
+
+    header {
+        padding: 26px 26px 6px;
+        text-align: center;
+    }
+
+    .eyebrow {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 700;
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 27px;
+        color: var(--teal-dark);
+        letter-spacing: 0.01em;
+    }
+
+    .meta {
+        margin: 2px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
+    /* --- signature element: the sun's daily arc, dawn to dusk --- */
+    .arc-wrap {
+        position: relative;
+        margin: 22px 14px 8px;
+        aspect-ratio: 300 / 132;
+    }
+
+    /* background layer only — clipped to rounded corners */
+    .arc-sky {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+        background-image:
+            radial-gradient(circle, var(--sky-dot) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+        transition: background 0.8s ease;
+        overflow: hidden;
+    }
+
+    .arc-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* markers live outside the clipped layer so labels never get cut off */
+    .arc-markers, .arc-now { position: absolute; inset: 0; }
+
+    .arc-svg path {
+        fill: none;
+        stroke: rgba(14, 62, 60, 0.28);
+        stroke-width: 1.4;
+        stroke-dasharray: 1 6;
+        stroke-linecap: round;
+    }
+
+    .arc-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .arc-marker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 3px rgba(14, 95, 90, 0.12);
+    }
+
+    .arc-marker.aktif .dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .arc-marker .label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .arc-marker.aktif .label { color: var(--gold); }
+
+    .arc-now {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px 2px rgba(184, 134, 46, 0.55);
+        transform: translate(-50%, -50%);
+        transition: left 1s linear, top 1s linear;
+    }
+
+    .countdown-box {
+        margin: 18px 20px 0;
+        background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .countdown-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    .countdown-timer {
+        font-size: 38px;
+        font-weight: 800;
+        margin: 6px 0 0;
+        font-variant-numeric: tabular-nums;
+        color: var(--gold-light);
+        letter-spacing: 0.02em;
+    }
+
+    .jadwal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 20px 20px 24px;
+    }
+
+    .jadwal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f4f7f6;
+        border-radius: 10px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .jadwal-item .nama {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 14.5px;
+    }
+
+    .jadwal-item .nama svg { flex-shrink: 0; }
+
+    .jadwal-item.aktif {
+        background: #fbf3e4;
+        border-left-color: var(--gold);
+    }
+
+    .jadwal-item.aktif .nama { color: var(--teal-dark); }
+
+    .waktu {
+        font-size: 16.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--teal-dark);
+    }
+
+    .jadwal-item.aktif .waktu { color: var(--gold); }
+
+    .arc-now.malam {
+background: #cfd8e6;
+box-shadow: 0 0 10px 2px rgba(120, 140, 180, 0.5);
+}
+.hari-besar { padding: 0 20px 24px; }
+.hari-besar h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.hb-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: #f4f7f6; border-radius: 10px; margin-bottom: 8px; }
+.hb-nama { font-weight: 600; font-size: 14px; color: var(--teal-dark); }
+.hb-tgl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hb-sisa { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.hb-catatan { margin: 6px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.doa { padding: 0 0 24px; }
+.doa h2, .haid h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.doa h2 { padding: 0 20px; }
+.doa-track { display: flex; align-items: flex-start; overflow-y: hidden; transition: height 0.3s ease; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 20px; padding: 0 20px; scrollbar-width: none; }
+.doa-track::-webkit-scrollbar { display: none; }
+.doa-slide { flex: 0 0 100%; box-sizing: border-box; scroll-snap-align: start; padding: 16px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.doa-slide.menahan { background: #fbf3e4; border-top-color: var(--gold); }
+.doa-slide.sabar { background: #e8f1ee; border-top-color: #4d8f7a; }
+.doa-slide.sadar { background: #eceff6; border-top-color: #5b6b8c; }
+.doa-kat { margin: 0; font-size: 12px; font-weight: 700; color: var(--gold); }
+.doa-judul { margin: 2px 0 12px; font-size: 15px; font-weight: 700; color: var(--teal-dark); }
+.doa-arab { font-family: 'Amiri', serif; font-size: 25px; line-height: 2; direction: rtl; text-align: right; }
+.doa-latin { margin: 10px 0 6px; font-size: 13px; font-style: italic; line-height: 1.5; color: var(--muted); }
+.doa-arti { margin: 0; font-size: 13.5px; line-height: 1.6; }
+.doa-renungan { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: var(--teal-dark); }
+.doa-sumber { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.doa-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.doa-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--line); transition: all 0.3s ease; }
+.doa-dots span.on { width: 16px; background: var(--gold); }
+.haid { padding: 0 20px 24px; }
+.haid-box { background: #f4f7f6; border-radius: 14px; padding: 16px; }
+.haid-status { margin: 0 0 4px; font-weight: 700; color: var(--teal-dark); }
+.haid-info { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.haid-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.haid-btn { font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px 14px; border: 0; border-radius: 10px; background: var(--teal); color: #fff; cursor: pointer; }
+.haid-btn.alt { background: #fff; color: var(--teal-dark); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) {
+        .arc-now { transition: none; }
+    }
+
+.doa-menu { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px; scrollbar-width: none; }
+.doa-menu::-webkit-scrollbar { display: none; }
+.doa-chip { flex: 0 0 auto; font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--teal-dark); white-space: nowrap; cursor: pointer; }
+.doa-chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.doa-kembali { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+.gerak { display: block; width: 100%; height: auto; max-height: 150px; margin: 0 0 4px; }
+.gerak .lantai { stroke: var(--line); stroke-width: 2; }
+.gerak polyline { fill: none; stroke: var(--teal-dark); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.gerak .kepala { fill: var(--teal); }
+.gerak .tetes { fill: #5ba9c4; opacity: 0; animation: jatuh 1.3s linear infinite; }
+@keyframes jatuh { 0% { transform: translateY(-8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(78px); opacity: 0; } }
+.gerak-label { min-height: 18px; margin: 0 0 10px; font-size: 12px; font-weight: 600; text-align: center; color: var(--gold); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul { margin: 6px 0; padding-left: 18px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi h3 { margin: 14px 0 4px; font-size: 14px; color: var(--teal-dark); }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul, .isi ol { margin: 6px 0; padding-left: 20px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.kotak { margin: 10px 0; padding: 14px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.arab { font-family: 'Amiri', serif; font-size: 23px; line-height: 2; direction: rtl; text-align: right; margin: 6px 0 0; }
+.latin { margin: 4px 0; font-size: 12.5px; font-style: italic; line-height: 1.5; color: var(--muted); }
+
+
+.hitung { position: sticky; top: 0; z-index: 5; margin: 0 0 14px; padding: 14px; border-radius: 16px; background: linear-gradient(135deg, #0f4a45, #16625a); color: #fff; box-shadow: 0 8px 22px rgba(12, 59, 56, 0.25); }
+.hitung .nama { margin: 0 0 8px; font-size: 12.5px; font-weight: 600; color: #e3c070; }
+.hitung .tap { display: block; width: 100%; padding: 18px 0; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.12); color: #fff; font: inherit; font-size: 44px; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hitung .tap:active { background: rgba(227, 192, 112, 0.35); }
+.bar { height: 6px; margin: 10px 0; border-radius: 3px; background: rgba(255, 255, 255, 0.18); overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; background: #e3c070; transition: width 0.15s ease; }
+.baris { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+.target button { font: inherit; font-size: 12px; font-weight: 700; margin-right: 4px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 999px; background: transparent; color: #fff; cursor: pointer; }
+.target button.on { background: #e3c070; border-color: #e3c070; color: #0a2f2d; }
+.reset { font: inherit; font-size: 12px; border: 0; background: transparent; color: rgba(255, 255, 255, 0.8); text-decoration: underline; cursor: pointer; }
+.sh-kartu { margin: 12px 0; padding: 16px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.sh-kartu h3 { margin: 0 0 6px; font-size: 15px; color: var(--teal-dark); }
+.pakai { margin-top: 8px; font: inherit; font-size: 13px; font-weight: 600; padding: 9px 14px; border: 0; border-radius: 10px; background: var(--teal); color: #fff; cursor: pointer; }
+
+</style>
+</head>
+<body>
+<div class="card">
+<div class="motif"></div>
+<header>
+<p class="eyebrow">Solawatan</p>
+<h1>Shalawat Nabi</h1>
+<p class="meta">Bacaan shalawat dan penghitung dzikir</p>
+<a class="doa-kembali" href="index.html">‹ Kembali ke jadwal</a>
+</header>
+<main class="isi">
+<div class="hitung">
+<p class="nama" id="nama">Shalawat pendek</p>
+<button class="tap" id="tap" aria-label="Tambah hitungan">0</button>
+<div class="bar"><span id="isi-bar"></span></div>
+<div class="baris">
+<span class="target" id="target"><button data-t="33">33</button><button data-t="100" class="on">100</button><button data-t="313">313</button></span>
+<span>Total: <b id="total">0</b> <button class="reset" id="reset">Ulangi</button></span>
+</div>
+</div>
+<div class="kotak">
+<div class="arab" lang="ar">إِنَّ اللّٰهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا</div>
+<p class="latin">Innallaha wa malaikatahu yushallauna 'alan nabiyy, ya ayyuhal ladzina amanu shallu 'alaihi wa sallimu taslima</p>
+<p>Sesungguhnya Allah dan para malaikat-Nya bershalawat untuk Nabi. Wahai orang-orang yang beriman, bershalawatlah kamu untuk Nabi dan ucapkanlah salam penghormatan kepadanya.</p>
+<p class="latin">QS. Al-Ahzab: 56</p>
+<p>Keutamaan: siapa yang bershalawat satu kali, Allah bershalawat kepadanya sepuluh kali (HR. Muslim). Perbanyaklah shalawat pada hari Jumat (HR. Abu Dawud).</p>
+</div>
+<article class="sh-kartu"><h3>Shalawat Ibrahimiyyah (shalawat dalam salat)</h3><div class="arab" lang="ar">اللّٰهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ</div><p class="latin">Allahumma shalli 'ala Muhammad wa 'ala ali Muhammad kama shallaita 'ala Ibrahim wa 'ala ali Ibrahim, wa barik 'ala Muhammad wa 'ala ali Muhammad kama barakta 'ala Ibrahim wa 'ala ali Ibrahim, fil 'alamina innaka hamidum majid.</p><p>Ya Allah, limpahkan rahmat kepada Muhammad dan keluarganya sebagaimana Engkau limpahkan kepada Ibrahim dan keluarganya, dan berkahilah Muhammad dan keluarganya sebagaimana Engkau berkahi Ibrahim dan keluarganya, di seluruh alam. Sungguh Engkau Maha Terpuji lagi Maha Mulia.</p><p class="latin">Dibaca pada tasyahud akhir (HR. Bukhari dan Muslim).</p><button class="pakai" data-n="Shalawat Ibrahimiyyah (shalawat dalam salat)">Hitung bacaan ini</button></article>
+<article class="sh-kartu"><h3>Shalawat pendek</h3><div class="arab" lang="ar">اللّٰهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ وَعَلَى آلِ سَيِّدِنَا مُحَمَّدٍ</div><p class="latin">Allahumma shalli 'ala sayyidina Muhammad wa 'ala ali sayyidina Muhammad</p><p>Ya Allah, limpahkan rahmat kepada junjungan kami Nabi Muhammad dan keluarganya.</p><p class="latin">Mudah dibaca kapan saja, cocok untuk dzikir berhitung.</p><button class="pakai" data-n="Shalawat pendek">Hitung bacaan ini</button></article>
+<article class="sh-kartu"><h3>Shalawat dan salam</h3><div class="arab" lang="ar">اللّٰهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ</div><p class="latin">Allahumma shalli wa sallim 'ala nabiyyina Muhammad</p><p>Ya Allah, limpahkan rahmat dan keselamatan kepada Nabi kami Muhammad.</p><p class="latin">Lafaz ringkas yang lazim diamalkan.</p><button class="pakai" data-n="Shalawat dan salam">Hitung bacaan ini</button></article>
+<article class="sh-kartu"><h3>Shalawat Jibril</h3><div class="arab" lang="ar">صَلَّى اللّٰهُ عَلَى مُحَمَّدٍ</div><p class="latin">Shallallahu 'ala Muhammad</p><p>Semoga Allah melimpahkan rahmat kepada Muhammad.</p><p class="latin">Sering dibaca bersama-sama dalam majelis shalawat.</p><button class="pakai" data-n="Shalawat Jibril">Hitung bacaan ini</button></article>
+<article class="sh-kartu"><h3>Shallallahu alaihi wa sallam</h3><div class="arab" lang="ar">صَلَّى اللّٰهُ عَلَيْهِ وَسَلَّمَ</div><p class="latin">Shallallahu 'alaihi wa sallam</p><p>Semoga Allah melimpahkan rahmat dan keselamatan kepadanya.</p><p class="latin">Diucapkan setiap kali menyebut atau mendengar nama Nabi.</p><button class="pakai" data-n="Shallallahu alaihi wa sallam">Hitung bacaan ini</button></article>
+
+<p class="catatan">Yang dimuat di sini adalah lafaz shalawat dari riwayat dan bacaan baku. Syair shalawat berlagu tidak dimuat. Penghitung hanya alat bantu dzikir, dan total tersimpan di perangkat ini.</p>
+</main>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+let jumlah = 0, target = 100, total = 0;
+try { total = Number(localStorage.getItem('shalawat-total')) || 0; } catch (e) {}
+const gambar = () => {
+$('tap').textContent = jumlah;
+$('isi-bar').style.width = Math.min(100, jumlah / target * 100) + '%';
+$('total').textContent = total.toLocaleString('id-ID');
+};
+$('tap').onclick = () => {
+jumlah++; total++;
+try { localStorage.setItem('shalawat-total', String(total)); } catch (e) {}
+if (navigator.vibrate) navigator.vibrate(jumlah % target === 0 ? [120, 60, 120] : 15);
+gambar();
+};
+$('reset').onclick = () => { jumlah = 0; gambar(); };
+$('target').onclick = (e) => {
+const b = e.target.closest('button');
+if (!b) return;
+target = Number(b.dataset.t);
+document.querySelectorAll('#target button').forEach(x => x.classList.toggle('on', x === b));
+gambar();
+};
+document.querySelectorAll('.pakai').forEach(b => b.onclick = () => {
+$('nama').textContent = b.dataset.n;
+jumlah = 0; gambar();
+window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+gambar();
+</script>
+</body>
+</html>

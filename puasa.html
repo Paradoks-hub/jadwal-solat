@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalender Puasa Ramadan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --ink: #16232a;
+        --muted: #64777d;
+        --bg: #e9eeec;
+        --card: #ffffff;
+        --teal: #0e5f5a;
+        --teal-dark: #0a3d3f;
+        --gold: #b8862e;
+        --gold-light: #e2b45c;
+        --line: #dfe6e4;
+        --ring: rgba(184, 134, 46, 0.35);
+
+        /* sky states, swapped by JS as the day progresses */
+        --sky-a: #dce9e6;
+        --sky-b: #eef4ee;
+        --sky-dot: rgba(14, 95, 90, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        margin: 0;
+        padding: 28px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -20px rgba(14, 62, 60, 0.35), 0 2px 8px rgba(14,62,60,0.06);
+        border: 1px solid var(--line);
+    }
+
+    /* geometric motif strip — nod to Islamic tilework, kept quiet */
+    .motif {
+        height: 6px;
+        background: repeating-linear-gradient(
+            135deg,
+            var(--teal) 0px, var(--teal) 6px,
+            var(--gold) 6px, var(--gold) 12px,
+            transparent 12px, transparent 18px
+        );
+        opacity: 0.85;
+    }
+
+    header {
+        padding: 26px 26px 6px;
+        text-align: center;
+    }
+
+    .eyebrow {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 700;
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 27px;
+        color: var(--teal-dark);
+        letter-spacing: 0.01em;
+    }
+
+    .meta {
+        margin: 2px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
+    /* --- signature element: the sun's daily arc, dawn to dusk --- */
+    .arc-wrap {
+        position: relative;
+        margin: 22px 14px 8px;
+        aspect-ratio: 300 / 132;
+    }
+
+    /* background layer only — clipped to rounded corners */
+    .arc-sky {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+        background-image:
+            radial-gradient(circle, var(--sky-dot) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+        transition: background 0.8s ease;
+        overflow: hidden;
+    }
+
+    .arc-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* markers live outside the clipped layer so labels never get cut off */
+    .arc-markers, .arc-now { position: absolute; inset: 0; }
+
+    .arc-svg path {
+        fill: none;
+        stroke: rgba(14, 62, 60, 0.28);
+        stroke-width: 1.4;
+        stroke-dasharray: 1 6;
+        stroke-linecap: round;
+    }
+
+    .arc-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .arc-marker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 3px rgba(14, 95, 90, 0.12);
+    }
+
+    .arc-marker.aktif .dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .arc-marker .label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .arc-marker.aktif .label { color: var(--gold); }
+
+    .arc-now {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px 2px rgba(184, 134, 46, 0.55);
+        transform: translate(-50%, -50%);
+        transition: left 1s linear, top 1s linear;
+    }
+
+    .countdown-box {
+        margin: 18px 20px 0;
+        background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .countdown-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    .countdown-timer {
+        font-size: 38px;
+        font-weight: 800;
+        margin: 6px 0 0;
+        font-variant-numeric: tabular-nums;
+        color: var(--gold-light);
+        letter-spacing: 0.02em;
+    }
+
+    .jadwal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 20px 20px 24px;
+    }
+
+    .jadwal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f4f7f6;
+        border-radius: 10px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .jadwal-item .nama {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 14.5px;
+    }
+
+    .jadwal-item .nama svg { flex-shrink: 0; }
+
+    .jadwal-item.aktif {
+        background: #fbf3e4;
+        border-left-color: var(--gold);
+    }
+
+    .jadwal-item.aktif .nama { color: var(--teal-dark); }
+
+    .waktu {
+        font-size: 16.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--teal-dark);
+    }
+
+    .jadwal-item.aktif .waktu { color: var(--gold); }
+
+    .arc-now.malam {
+background: #cfd8e6;
+box-shadow: 0 0 10px 2px rgba(120, 140, 180, 0.5);
+}
+.hari-besar { padding: 0 20px 24px; }
+.hari-besar h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.hb-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: #f4f7f6; border-radius: 10px; margin-bottom: 8px; }
+.hb-nama { font-weight: 600; font-size: 14px; color: var(--teal-dark); }
+.hb-tgl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hb-sisa { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.hb-catatan { margin: 6px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.doa { padding: 0 0 24px; }
+.doa h2, .haid h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.doa h2 { padding: 0 20px; }
+.doa-track { display: flex; align-items: flex-start; overflow-y: hidden; transition: height 0.3s ease; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 20px; padding: 0 20px; scrollbar-width: none; }
+.doa-track::-webkit-scrollbar { display: none; }
+.doa-slide { flex: 0 0 100%; box-sizing: border-box; scroll-snap-align: start; padding: 16px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.doa-slide.menahan { background: #fbf3e4; border-top-color: var(--gold); }
+.doa-slide.sabar { background: #e8f1ee; border-top-color: #4d8f7a; }
+.doa-slide.sadar { background: #eceff6; border-top-color: #5b6b8c; }
+.doa-kat { margin: 0; font-size: 12px; font-weight: 700; color: var(--gold); }
+.doa-judul { margin: 2px 0 12px; font-size: 15px; font-weight: 700; color: var(--teal-dark); }
+.doa-arab { font-family: 'Amiri', serif; font-size: 25px; line-height: 2; direction: rtl; text-align: right; }
+.doa-latin { margin: 10px 0 6px; font-size: 13px; font-style: italic; line-height: 1.5; color: var(--muted); }
+.doa-arti { margin: 0; font-size: 13.5px; line-height: 1.6; }
+.doa-renungan { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: var(--teal-dark); }
+.doa-sumber { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.doa-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.doa-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--line); transition: all 0.3s ease; }
+.doa-dots span.on { width: 16px; background: var(--gold); }
+.haid { padding: 0 20px 24px; }
+.haid-box { background: #f4f7f6; border-radius: 14px; padding: 16px; }
+.haid-status { margin: 0 0 4px; font-weight: 700; color: var(--teal-dark); }
+.haid-info { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.haid-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.haid-btn { font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px 14px; border: 0; border-radius: 10px; background: var(--teal); color: #fff; cursor: pointer; }
+.haid-btn.alt { background: #fff; color: var(--teal-dark); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) {
+        .arc-now { transition: none; }
+    }
+
+.doa-menu { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px; scrollbar-width: none; }
+.doa-menu::-webkit-scrollbar { display: none; }
+.doa-chip { flex: 0 0 auto; font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--teal-dark); white-space: nowrap; cursor: pointer; }
+.doa-chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.doa-kembali { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+.gerak { display: block; width: 100%; height: auto; max-height: 150px; margin: 0 0 4px; }
+.gerak .lantai { stroke: var(--line); stroke-width: 2; }
+.gerak polyline { fill: none; stroke: var(--teal-dark); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.gerak .kepala { fill: var(--teal); }
+.gerak .tetes { fill: #5ba9c4; opacity: 0; animation: jatuh 1.3s linear infinite; }
+@keyframes jatuh { 0% { transform: translateY(-8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(78px); opacity: 0; } }
+.gerak-label { min-height: 18px; margin: 0 0 10px; font-size: 12px; font-weight: 600; text-align: center; color: var(--gold); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul { margin: 6px 0; padding-left: 18px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+
+
+html { scroll-behavior: smooth; }
+.isi { padding: 0 20px 24px; }
+.info-ramadan { margin: 0 20px 12px; padding: 12px 14px; border-radius: 12px; background: #fbf3e4; font-size: 13px; line-height: 1.55; color: var(--teal-dark); }
+#kartu { display: block; width: calc(100% - 40px); max-width: 420px; height: auto; margin: 4px auto 0; border-radius: 18px; box-shadow: 0 14px 34px rgba(12, 59, 56, 0.28); }
+.aksi { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 20px 6px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 360px; border-collapse: collapse; font-size: 12.5px; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr { cursor: pointer; }
+.isi tr.pilih td { background: #fbf3e4; font-weight: 700; }
+.isi h2 { margin: 18px 0 8px; font-size: 16px; color: var(--teal-dark); }
+
+</style>
+</head>
+<body>
+<div class="card">
+<div class="motif"></div>
+<header>
+<p class="eyebrow">Ramadan</p>
+<h1>Kalender Puasa</h1>
+<p class="meta" id="lokasi-puasa">Mendeteksi lokasi…</p>
+<a class="doa-kembali" href="index.html">‹ Kembali ke jadwal</a>
+</header>
+<div class="info-ramadan" id="info-ramadan">Menghitung awal Ramadan…</div>
+<nav class="doa-menu" id="menu-hari" aria-label="Pilih hari puasa"></nav>
+<canvas id="kartu" width="1080" height="1350" aria-label="Kartu jadwal puasa"></canvas>
+<div class="aksi">
+<button class="haid-btn" id="btn-bagikan">Bagikan ke WhatsApp</button>
+<button class="haid-btn alt" id="btn-simpan">Simpan gambar</button>
+</div>
+<main class="isi">
+<h2>Semua hari</h2>
+<div class="tabel-bungkus"><table id="tabel">
+<thead><tr><th>Hari</th><th>Tanggal</th><th>Imsak</th><th>Subuh</th><th>Buka</th></tr></thead>
+<tbody></tbody>
+</table></div>
+<p class="hb-catatan">Waktu dihitung dari lokasi perangkat dan bersifat perkiraan. Awal Ramadan mengikuti kalender Hijriah Umm al-Qura; di Indonesia ditetapkan Kemenag lewat sidang isbat dan bisa berbeda 1 hari. Imsak dihitung 10 menit sebelum Subuh.</p>
+</main>
+</div>
+<script>
+const KOREKSI_HIJRIAH = 0; // geser hari jika Kemenag menetapkan beda (-1 atau 1)
+const rad = (x) => x * Math.PI / 180;
+const deg = (x) => x * 180 / Math.PI;
+const labelZona = (z) => ({ 7: 'WIB', 8: 'WITA', 9: 'WIT' })[z] || `UTC${z >= 0 ? '+' : ''}${z}`;
+const fmtH = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric' });
+const hijri = (dt) => {
+const p = fmtH.formatToParts(new Date(dt.getTime() + KOREKSI_HIJRIAH * 86400000));
+const g = (t) => Number(p.find(x => x.type === t).value);
+return { d: g('day'), m: g('month'), y: g('year') };
+};
+const hhmm = (m) => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+
+function waktuPuasa(date, lat, lng) {
+const tz = -date.getTimezoneOffset() / 60;
+const Y = date.getFullYear(), M = date.getMonth() + 1, D = date.getDate();
+const jd = 367 * Y - Math.floor(7 * (Y + Math.floor((M + 9) / 12)) / 4) + Math.floor(275 * M / 9) + D + 1721013.5 - tz / 24;
+const d = jd - 2451545.0;
+const g = (357.529 + 0.98560028 * d) % 360;
+const q = (280.459 + 0.98564736 * d) % 360;
+const L = (q + 1.915 * Math.sin(rad(g)) + 0.020 * Math.sin(rad(2 * g))) % 360;
+const e = 23.439 - 0.00000036 * d;
+let ra = deg(Math.atan2(Math.cos(rad(e)) * Math.sin(rad(L)), Math.cos(rad(L)))) / 15;
+if (ra < 0) ra += 24;
+const dec = deg(Math.asin(Math.sin(rad(e)) * Math.sin(rad(L))));
+let eot = q / 15 - ra;
+if (eot < -12) eot += 24;
+if (eot > 12) eot -= 24;
+const mid = 12 + tz - lng / 15 - eot;
+const ha = (s) => {
+const n = Math.sin(rad(s)) - Math.sin(rad(lat)) * Math.sin(rad(dec));
+const c = n / (Math.cos(rad(lat)) * Math.cos(rad(dec)));
+return Math.abs(c) > 1 ? 0 : deg(Math.acos(c)) / 15;
+};
+const menit = (jam) => Math.floor(jam * 60) + 2; // +2 menit ihtiyat, sama seperti jadwal salat
+const subuh = menit(mid - ha(-20));
+return { imsak: hhmm(subuh - 10), subuh: hhmm(subuh), buka: hhmm(menit(mid + ha(-0.833))) };
+}
+
+function cariRamadan() {
+const t = new Date();
+t.setHours(12, 0, 0, 0);
+for (let i = -30; i <= 420; i++) {
+const dt = new Date(t.getTime() + i * 86400000);
+const h = hijri(dt);
+if (h.m === 9 && h.d === 1) {
+let n = 1;
+while (hijri(new Date(dt.getTime() + n * 86400000)).m === 9) n++;
+if (dt.getTime() + n * 86400000 > t.getTime()) return { mulai: dt, hari: n, tahun: h.y, sisa: i };
+}
+}
+}
+
+let lokasi = null, daftar = [], pilih = 0;
+const kartu = document.getElementById('kartu');
+const fmtTgl = (d, opsi) => d.toLocaleDateString('id-ID', opsi);
+
+async function gambarKartu() {
+const h = daftar[pilih];
+if (!h) return;
+const W = 1080, H = 1350;
+const c = kartu.getContext('2d');
+kartu.width = W; kartu.height = H;
+try { await Promise.all([document.fonts.load('800 80px Inter'), document.fonts.load('700 80px Amiri')]); } catch (e) {}
+const bg = c.createLinearGradient(0, 0, W, H);
+bg.addColorStop(0, '#0a2f2d'); bg.addColorStop(0.55, '#0f4a45'); bg.addColorStop(1, '#16625a');
+c.fillStyle = bg; c.fillRect(0, 0, W, H);
+c.strokeStyle = 'rgba(227,192,112,0.10)'; c.lineWidth = 2;
+for (let y = 0; y < H + 120; y += 120) {
+for (let x = (y / 120 % 2) * 60; x < W + 120; x += 120) {
+c.save(); c.translate(x, y); c.strokeRect(-24, -24, 48, 48); c.rotate(Math.PI / 4); c.strokeRect(-24, -24, 48, 48); c.restore();
+}
+}
+const o = document.createElement('canvas');
+o.width = o.height = 300;
+const x = o.getContext('2d');
+x.fillStyle = '#e3c070'; x.beginPath(); x.arc(150, 150, 110, 0, 7); x.fill();
+x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.arc(200, 125, 100, 0, 7); x.fill();
+c.shadowColor = 'rgba(227,192,112,0.55)'; c.shadowBlur = 40;
+c.drawImage(o, 380, 50);
+c.shadowBlur = 0;
+c.fillStyle = '#e3c070';
+[[720, 150, 7], [790, 240, 4], [660, 96, 3.5], [820, 120, 3]].forEach(([a, b, r]) => { c.beginPath(); c.arc(a, b, r, 0, 7); c.fill(); });
+
+c.textAlign = 'center';
+if ('letterSpacing' in c) c.letterSpacing = '8px';
+c.font = '600 36px Inter, system-ui, sans-serif'; c.fillStyle = '#e3c070';
+c.fillText(`RAMADAN ${h.tahun} H`, W / 2, 450);
+if ('letterSpacing' in c) c.letterSpacing = '0px';
+c.font = '800 92px Inter, system-ui, sans-serif'; c.fillStyle = '#ffffff';
+c.fillText(`Puasa Hari ke-${h.no}`, W / 2, 560);
+c.font = '500 38px Inter, system-ui, sans-serif'; c.fillStyle = 'rgba(255,255,255,0.78)';
+c.fillText(fmtTgl(h.tgl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), W / 2, 625);
+c.font = '700 84px Amiri, serif'; c.fillStyle = '#e3c070';
+c.fillText('رَمَضَانُ كَرِيمٌ', W / 2, 745);
+
+const rr = (a, b, w, hh, r) => { c.beginPath(); if (c.roundRect) c.roundRect(a, b, w, hh, r); else c.rect(a, b, w, hh); };
+const kolom = [['IMSAK', h.imsak, 'Batas sahur'], ['SUBUH', h.subuh, 'Mulai puasa'], ['BERBUKA', h.buka, 'Waktu Maghrib']];
+kolom.forEach(([label, waktu, ket], i) => {
+const px = 78 + i * 316, py = 830, utama = i === 2;
+rr(px, py, 292, 290, 28);
+c.fillStyle = utama ? '#e3c070' : 'rgba(255,255,255,0.07)'; c.fill();
+if (!utama) { c.strokeStyle = 'rgba(227,192,112,0.35)'; c.lineWidth = 2; c.stroke(); }
+c.fillStyle = utama ? '#0a2f2d' : '#e3c070';
+c.font = '700 30px Inter, system-ui, sans-serif'; c.fillText(label, px + 146, py + 72);
+c.fillStyle = utama ? '#0a2f2d' : '#ffffff';
+c.font = '800 84px Inter, system-ui, sans-serif'; c.fillText(waktu, px + 146, py + 184);
+c.fillStyle = utama ? 'rgba(10,47,45,0.75)' : 'rgba(255,255,255,0.65)';
+c.font = '500 26px Inter, system-ui, sans-serif'; c.fillText(ket, px + 146, py + 244);
+});
+c.fillStyle = '#ffffff'; c.font = '600 32px Inter, system-ui, sans-serif';
+c.fillText(`${lokasi.nama} · ${labelZona(-h.tgl.getTimezoneOffset() / 60)}`, W / 2, 1210);
+c.fillStyle = 'rgba(255,255,255,0.55)'; c.font = '500 24px Inter, system-ui, sans-serif';
+c.fillText('Perkiraan waktu, ikuti ketetapan Kemenag setempat', W / 2, 1262);
+c.fillText('Lintasan Waktu Salat', W / 2, 1306);
+}
+
+function renderPilihan() {
+const menu = document.getElementById('menu-hari');
+menu.innerHTML = daftar.map((h, i) => `<button class="doa-chip${i === pilih ? ' on' : ''}" data-i="${i}">Hari ${h.no}</button>`).join('');
+document.querySelectorAll('#tabel tbody tr').forEach((tr, i) => tr.classList.toggle('pilih', i === pilih));
+const aktif = menu.children[pilih];
+if (aktif) menu.scrollTo({ left: aktif.offsetLeft - 20, behavior: 'smooth' });
+gambarKartu();
+}
+
+function bangun() {
+const r = cariRamadan();
+document.getElementById('lokasi-puasa').innerText = `${lokasi.nama} · ${labelZona(-new Date().getTimezoneOffset() / 60)}`;
+daftar = Array.from({ length: r.hari }, (_, k) => {
+const tgl = new Date(r.mulai.getTime() + k * 86400000);
+return { no: k + 1, tgl, tahun: r.tahun, ...waktuPuasa(tgl, lokasi.lat, lokasi.lng) };
+});
+const hariIni = new Date();
+hariIni.setHours(12, 0, 0, 0);
+const k = Math.round((hariIni - r.mulai) / 86400000);
+pilih = k >= 0 && k < r.hari ? k : 0;
+document.getElementById('info-ramadan').innerText = k >= 0
+? `Hari ini puasa hari ke-${k + 1} Ramadan ${r.tahun} H. Pilih hari lain untuk melihat jadwalnya.`
+: `Ramadan ${r.tahun} H diperkirakan mulai ${fmtTgl(r.mulai, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} (${-k} hari lagi). Jadwal di bawah sudah dihitung untuk lokasimu.`;
+document.querySelector('#tabel tbody').innerHTML = daftar.map((h, i) => `<tr data-i="${i}"><td>${h.no}</td><td>${fmtTgl(h.tgl, { day: 'numeric', month: 'short' })}</td><td>${h.imsak}</td><td>${h.subuh}</td><td>${h.buka}</td></tr>`).join('');
+renderPilihan();
+}
+
+document.getElementById('menu-hari').addEventListener('click', (e) => {
+const b = e.target.closest('.doa-chip');
+if (b) { pilih = Number(b.dataset.i); renderPilihan(); }
+});
+document.querySelector('#tabel tbody').addEventListener('click', (e) => {
+const tr = e.target.closest('tr');
+if (tr) { pilih = Number(tr.dataset.i); renderPilihan(); kartu.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+});
+
+const jadiBlob = () => new Promise((res) => kartu.toBlob(res, 'image/png'));
+const namaFile = () => `puasa-hari-${daftar[pilih].no}.png`;
+function unduh(blob) {
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = namaFile();
+a.click();
+setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+document.getElementById('btn-simpan').onclick = async () => { await gambarKartu(); unduh(await jadiBlob()); };
+document.getElementById('btn-bagikan').onclick = async () => {
+await gambarKartu();
+const blob = await jadiBlob();
+const file = new File([blob], namaFile(), { type: 'image/png' });
+if (navigator.canShare && navigator.canShare({ files: [file] })) {
+try { await navigator.share({ files: [file], title: `Puasa hari ke-${daftar[pilih].no}` }); return; } catch (e) { if (e.name === 'AbortError') return; }
+}
+unduh(blob); // browser tanpa fitur bagikan: gambar diunduh, lalu kirim manual lewat WhatsApp
+};
+
+function mulai(lat, lng, nama) { lokasi = { lat, lng, nama }; bangun(); }
+window.onload = () => {
+const bawaan = () => mulai(1.4784, 102.1384, 'Bengkalis, Riau');
+if (!navigator.geolocation) return bawaan();
+navigator.geolocation.getCurrentPosition(
+(pos) => mulai(pos.coords.latitude, pos.coords.longitude, `Lokasi perangkat (${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)})`),
+bawaan,
+{ timeout: 10000, maximumAge: 600000 }
+);
+};
+</script>
+</body>
+</html>

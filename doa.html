@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doa &amp; Gerakan Salat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --ink: #16232a;
+        --muted: #64777d;
+        --bg: #e9eeec;
+        --card: #ffffff;
+        --teal: #0e5f5a;
+        --teal-dark: #0a3d3f;
+        --gold: #b8862e;
+        --gold-light: #e2b45c;
+        --line: #dfe6e4;
+        --ring: rgba(184, 134, 46, 0.35);
+
+        /* sky states, swapped by JS as the day progresses */
+        --sky-a: #dce9e6;
+        --sky-b: #eef4ee;
+        --sky-dot: rgba(14, 95, 90, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        margin: 0;
+        padding: 28px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -20px rgba(14, 62, 60, 0.35), 0 2px 8px rgba(14,62,60,0.06);
+        border: 1px solid var(--line);
+    }
+
+    /* geometric motif strip — nod to Islamic tilework, kept quiet */
+    .motif {
+        height: 6px;
+        background: repeating-linear-gradient(
+            135deg,
+            var(--teal) 0px, var(--teal) 6px,
+            var(--gold) 6px, var(--gold) 12px,
+            transparent 12px, transparent 18px
+        );
+        opacity: 0.85;
+    }
+
+    header {
+        padding: 26px 26px 6px;
+        text-align: center;
+    }
+
+    .eyebrow {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 700;
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 27px;
+        color: var(--teal-dark);
+        letter-spacing: 0.01em;
+    }
+
+    .meta {
+        margin: 2px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
+    /* --- signature element: the sun's daily arc, dawn to dusk --- */
+    .arc-wrap {
+        position: relative;
+        margin: 22px 14px 8px;
+        aspect-ratio: 300 / 132;
+    }
+
+    /* background layer only — clipped to rounded corners */
+    .arc-sky {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+        background-image:
+            radial-gradient(circle, var(--sky-dot) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+        transition: background 0.8s ease;
+        overflow: hidden;
+    }
+
+    .arc-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* markers live outside the clipped layer so labels never get cut off */
+    .arc-markers, .arc-now { position: absolute; inset: 0; }
+
+    .arc-svg path {
+        fill: none;
+        stroke: rgba(14, 62, 60, 0.28);
+        stroke-width: 1.4;
+        stroke-dasharray: 1 6;
+        stroke-linecap: round;
+    }
+
+    .arc-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .arc-marker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 3px rgba(14, 95, 90, 0.12);
+    }
+
+    .arc-marker.aktif .dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .arc-marker .label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .arc-marker.aktif .label { color: var(--gold); }
+
+    .arc-now {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px 2px rgba(184, 134, 46, 0.55);
+        transform: translate(-50%, -50%);
+        transition: left 1s linear, top 1s linear;
+    }
+
+    .countdown-box {
+        margin: 18px 20px 0;
+        background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .countdown-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    .countdown-timer {
+        font-size: 38px;
+        font-weight: 800;
+        margin: 6px 0 0;
+        font-variant-numeric: tabular-nums;
+        color: var(--gold-light);
+        letter-spacing: 0.02em;
+    }
+
+    .jadwal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 20px 20px 24px;
+    }
+
+    .jadwal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f4f7f6;
+        border-radius: 10px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .jadwal-item .nama {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 14.5px;
+    }
+
+    .jadwal-item .nama svg { flex-shrink: 0; }
+
+    .jadwal-item.aktif {
+        background: #fbf3e4;
+        border-left-color: var(--gold);
+    }
+
+    .jadwal-item.aktif .nama { color: var(--teal-dark); }
+
+    .waktu {
+        font-size: 16.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--teal-dark);
+    }
+
+    .jadwal-item.aktif .waktu { color: var(--gold); }
+
+    .arc-now.malam {
+background: #cfd8e6;
+box-shadow: 0 0 10px 2px rgba(120, 140, 180, 0.5);
+}
+.hari-besar { padding: 0 20px 24px; }
+.hari-besar h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.hb-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: #f4f7f6; border-radius: 10px; margin-bottom: 8px; }
+.hb-nama { font-weight: 600; font-size: 14px; color: var(--teal-dark); }
+.hb-tgl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hb-sisa { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.hb-catatan { margin: 6px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.doa { padding: 0 0 24px; }
+.doa h2, .haid h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.doa h2 { padding: 0 20px; }
+.doa-track { display: flex; align-items: flex-start; overflow-y: hidden; transition: height 0.3s ease; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 20px; padding: 0 20px; scrollbar-width: none; }
+.doa-track::-webkit-scrollbar { display: none; }
+.doa-slide { flex: 0 0 100%; box-sizing: border-box; scroll-snap-align: start; padding: 16px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.doa-slide.menahan { background: #fbf3e4; border-top-color: var(--gold); }
+.doa-slide.sabar { background: #e8f1ee; border-top-color: #4d8f7a; }
+.doa-slide.sadar { background: #eceff6; border-top-color: #5b6b8c; }
+.doa-kat { margin: 0; font-size: 12px; font-weight: 700; color: var(--gold); }
+.doa-judul { margin: 2px 0 12px; font-size: 15px; font-weight: 700; color: var(--teal-dark); }
+.doa-arab { font-family: 'Amiri', serif; font-size: 25px; line-height: 2; direction: rtl; text-align: right; }
+.doa-latin { margin: 10px 0 6px; font-size: 13px; font-style: italic; line-height: 1.5; color: var(--muted); }
+.doa-arti { margin: 0; font-size: 13.5px; line-height: 1.6; }
+.doa-renungan { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: var(--teal-dark); }
+.doa-sumber { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.doa-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.doa-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--line); transition: all 0.3s ease; }
+.doa-dots span.on { width: 16px; background: var(--gold); }
+.haid { padding: 0 20px 24px; }
+.haid-box { background: #f4f7f6; border-radius: 14px; padding: 16px; }
+.haid-status { margin: 0 0 4px; font-weight: 700; color: var(--teal-dark); }
+.haid-info { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.haid-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.haid-btn { font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px 14px; border: 0; border-radius: 10px; background: var(--teal); color: #fff; cursor: pointer; }
+.haid-btn.alt { background: #fff; color: var(--teal-dark); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) {
+        .arc-now { transition: none; }
+    }
+
+.doa-menu { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px; scrollbar-width: none; }
+.doa-menu::-webkit-scrollbar { display: none; }
+.doa-chip { flex: 0 0 auto; font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--teal-dark); white-space: nowrap; cursor: pointer; }
+.doa-chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.doa-kembali { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+.gerak { display: block; width: 100%; height: auto; max-height: 150px; margin: 0 0 4px; }
+.gerak .lantai { stroke: var(--line); stroke-width: 2; }
+.gerak polyline { fill: none; stroke: var(--teal-dark); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.gerak .kepala { fill: var(--teal); }
+.gerak .tetes { fill: #5ba9c4; opacity: 0; animation: jatuh 1.3s linear infinite; }
+@keyframes jatuh { 0% { transform: translateY(-8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(78px); opacity: 0; } }
+.gerak-label { min-height: 18px; margin: 0 0 10px; font-size: 12px; font-weight: 600; text-align: center; color: var(--gold); }
+
+</style>
+</head>
+<body>
+<div class="card">
+<div class="motif"></div>
+<header>
+<p class="eyebrow">Doa harian</p>
+<h1>Doa &amp; Gerakan Salat</h1>
+<p class="meta">Geser ke kiri untuk doa berikutnya</p>
+<a class="doa-kembali" href="index.html">‹ Kembali ke jadwal</a> &nbsp;·&nbsp; <a class="doa-kembali" href="imam-makmum.html">Imam &amp; makmum ›</a>
+</header>
+<section class="doa">
+<nav class="doa-menu" id="doa-menu" aria-label="Menu pintas doa"></nav>
+<div class="doa-track" id="doa-track"></div>
+<div class="doa-dots" id="doa-dots"></div>
+</section>
+</div>
+<script>
+const SLIDE_DOA = [
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Takbiratul ihram',
+arab: 'اللّٰهُ أَكْبَرُ', latin: 'Allahu akbar', arti: 'Allah Maha Besar.',
+sumber: 'Diucapkan sambil mengangkat tangan sejajar bahu atau telinga, lalu bersedekap.' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Doa iftitah',
+arab: 'اللّٰهُ أَكْبَرُ كَبِيرًا وَالْحَمْدُ لِلّٰهِ كَثِيرًا وَسُبْحَانَ اللّٰهِ بُكْرَةً وَأَصِيلًا، إِنِّي وَجَّهْتُ وَجْهِيَ لِلَّذِي فَطَرَ السَّمَاوَاتِ وَالْأَرْضَ حَنِيفًا مُسْلِمًا وَمَا أَنَا مِنَ الْمُشْرِكِينَ، إِنَّ صَلَاتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي لِلّٰهِ رَبِّ الْعَالَمِينَ، لَا شَرِيكَ لَهُ وَبِذَٰلِكَ أُمِرْتُ وَأَنَا مِنَ الْمُسْلِمِينَ',
+latin: `Allahu akbar kabira walhamdulillahi katsira wa subhanallahi bukratan wa ashila. Inni wajjahtu wajhiya lilladzi fatharas samawati wal ardha hanifan musliman wa ma ana minal musyrikin. Inna shalati wa nusuki wa mahyaya wa mamati lillahi rabbil 'alamin. La syarika lahu wa bidzalika umirtu wa ana minal muslimin.`,
+arti: 'Allah Maha Besar, segala puji bagi Allah sebanyak-banyaknya, Maha Suci Allah pagi dan petang. Aku hadapkan wajahku kepada Zat yang menciptakan langit dan bumi dengan lurus dan berserah diri, dan aku bukan orang musyrik. Sesungguhnya salatku, ibadahku, hidupku, dan matiku untuk Allah, Tuhan semesta alam. Tidak ada sekutu bagi-Nya; demikian aku diperintahkan, dan aku termasuk orang muslim.',
+sumber: 'Dibaca di rakaat pertama setelah takbiratul ihram. Hukumnya sunnah (HR. Muslim, potongan).' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Al-Fatihah',
+arab: 'بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيمِ ۝ الْحَمْدُ لِلّٰهِ رَبِّ الْعَالَمِينَ ۝ الرَّحْمٰنِ الرَّحِيمِ ۝ مَالِكِ يَوْمِ الدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ ۝ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ ۝ آمِين',
+latin: `Bismillahirrahmanirrahim. Alhamdulillahi rabbil 'alamin. Arrahmanirrahim. Maliki yaumiddin. Iyyaka na'budu wa iyyaka nasta'in. Ihdinas shiratal mustaqim. Shiratal ladzina an'amta 'alaihim ghairil maghdhubi 'alaihim waladh dhallin. Amin.`,
+arti: 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah, Tuhan semesta alam. Maha Pengasih, Maha Penyayang. Pemilik hari pembalasan. Hanya kepada-Mu kami menyembah dan hanya kepada-Mu kami memohon pertolongan. Tunjukilah kami jalan yang lurus, yaitu jalan orang yang Engkau beri nikmat, bukan jalan mereka yang dimurkai dan bukan jalan mereka yang sesat.',
+sumber: 'QS. Al-Fatihah. Rukun salat, dibaca di setiap rakaat.' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Surat pendek: Al-Ikhlas',
+arab: 'قُلْ هُوَ اللّٰهُ أَحَدٌ ۝ اللّٰهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ',
+latin: `Qul huwallahu ahad. Allahush shamad. Lam yalid wa lam yulad. Wa lam yakun lahu kufuwan ahad.`,
+arti: 'Katakanlah, Dialah Allah Yang Maha Esa. Allah tempat meminta segala sesuatu. Dia tidak beranak dan tidak diperanakkan. Tidak ada sesuatu yang setara dengan-Nya.',
+sumber: 'QS. Al-Ikhlas. Dibaca setelah Al-Fatihah di dua rakaat pertama; surat atau ayat lain juga boleh.' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Rukuk',
+arab: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ وَبِحَمْدِهِ', latin: `Subhana rabbiyal 'azhimi wa bihamdih`,
+arti: 'Maha Suci Tuhanku Yang Maha Agung, dan dengan memuji-Nya.', sumber: 'Dibaca 3 kali (HR. Abu Dawud).' },
+{ k: 'salat', kat: 'Bacaan salat', judul: `I'tidal`,
+arab: 'سَمِعَ اللّٰهُ لِمَنْ حَمِدَهُ<br>رَبَّنَا لَكَ الْحَمْدُ', latin: `Sami'allahu liman hamidah. Rabbana lakal hamd.`,
+arti: 'Allah mendengar orang yang memuji-Nya. Wahai Tuhan kami, bagi-Mu segala puji.', sumber: `Kalimat pertama saat bangkit dari rukuk, kedua saat sudah tegak (HR. Bukhari dan Muslim).` },
+{ k: 'salat', kat: 'Bacaan salat · Subuh', judul: 'Doa qunut',
+arab: 'اللّٰهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ، وَعَافِنِي فِيمَنْ عَافَيْتَ، وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ، وَبَارِكْ لِي فِيمَا أَعْطَيْتَ، وَقِنِي شَرَّ مَا قَضَيْتَ، فَإِنَّكَ تَقْضِي وَلَا يُقْضَى عَلَيْكَ، وَإِنَّهُ لَا يَذِلُّ مَنْ وَالَيْتَ، وَلَا يَعِزُّ مَنْ عَادَيْتَ، تَبَارَكْتَ رَبَّنَا وَتَعَالَيْتَ، فَلَكَ الْحَمْدُ عَلَى مَا قَضَيْتَ، أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ، وَصَلَّى اللّٰهُ عَلَى سَيِّدِنَا مُحَمَّدٍ النَّبِيِّ الْأُمِّيِّ وَعَلَى آلِهِ وَصَحْبِهِ وَسَلَّمَ',
+latin: `Allahummahdini fiman hadait, wa 'afini fiman 'afait, wa tawallani fiman tawallait, wa barik li fima a'thait, wa qini syarra ma qadhait, fa innaka taqdhi wa la yuqdha 'alaik, wa innahu la yadzillu man walait, wa la ya'izzu man 'adait, tabarakta rabbana wa ta'alait, falakal hamdu 'ala ma qadhait, astaghfiruka wa atubu ilaik, wa shallallahu 'ala sayyidina Muhammadin nabiyyil ummiyyi wa 'ala alihi wa shahbihi wa sallam.`,
+arti: 'Ya Allah, berilah aku petunjuk bersama orang-orang yang Engkau beri petunjuk, kesehatan bersama orang yang Engkau beri kesehatan, perlindungan bersama orang yang Engkau lindungi. Berkahilah apa yang Engkau berikan, dan jauhkan aku dari keburukan yang Engkau tetapkan. Engkaulah yang memutuskan dan tidak ada yang memutuskan atas-Mu. Tidak hina orang yang Engkau bela, tidak mulia orang yang Engkau musuhi. Maha Suci dan Maha Tinggi Engkau, wahai Tuhan kami. Bagi-Mu segala puji atas apa yang Engkau tetapkan. Aku memohon ampun dan bertobat kepada-Mu. Semoga Allah melimpahkan rahmat dan salam kepada Nabi Muhammad, nabi yang ummi, beserta keluarga dan sahabatnya.',
+sumber: `Dibaca setelah i'tidal rakaat kedua salat Subuh menurut mazhab Syafi'i (lafaz inti: HR. Abu Dawud dan At-Tirmidzi). Mazhab lain berbeda pendapat tentang qunut Subuh, jadi ikuti mazhab yang kamu yakini.` },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Sujud',
+arab: 'سُبْحَانَ رَبِّيَ الْأَعْلَى وَبِحَمْدِهِ', latin: `Subhana rabbiyal a'la wa bihamdih`,
+arti: 'Maha Suci Tuhanku Yang Maha Tinggi, dan dengan memuji-Nya.', sumber: 'Dibaca 3 kali (HR. Abu Dawud).' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Duduk di antara dua sujud',
+arab: 'رَبِّ اغْفِرْ لِي وَارْحَمْنِي وَاجْبُرْنِي وَارْفَعْنِي وَارْزُقْنِي وَاهْدِنِي وَعَافِنِي وَاعْفُ عَنِّي',
+latin: `Rabbighfirli warhamni wajburni warfa'ni warzuqni wahdini wa'afini wa'fu 'anni`,
+arti: 'Ya Tuhanku, ampunilah aku, rahmatilah aku, cukupkanlah kekuranganku, angkatlah derajatku, berilah aku rezeki, petunjuk, kesehatan, dan maafkanlah aku.',
+sumber: 'HR. Abu Dawud dan At-Tirmidzi.' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Tasyahud awal',
+arab: 'التَّحِيَّاتُ الْمُبَارَكَاتُ الصَّلَوَاتُ الطَّيِّبَاتُ لِلّٰهِ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللّٰهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللّٰهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللّٰهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ اللّٰهِ',
+latin: `At-tahiyyatul mubarakatush shalawatuth thayyibatu lillah. Assalamu 'alaika ayyuhan nabiyyu wa rahmatullahi wa barakatuh. Assalamu 'alaina wa 'ala 'ibadillahish shalihin. Asyhadu an la ilaha illallah wa asyhadu anna Muhammadan rasulullah.`,
+arti: 'Segala penghormatan, keberkahan, salawat, dan kebaikan milik Allah. Salam sejahtera untukmu wahai Nabi, juga rahmat dan berkah Allah. Salam sejahtera untuk kami dan hamba-hamba Allah yang saleh. Aku bersaksi tidak ada tuhan selain Allah, dan aku bersaksi Muhammad adalah utusan Allah.',
+sumber: 'Dibaca pada duduk setelah rakaat kedua salat 3 atau 4 rakaat (HR. Muslim).' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Tasyahud akhir dan shalawat',
+arab: 'اللّٰهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
+latin: `Allahumma shalli 'ala Muhammad wa 'ala ali Muhammad kama shallaita 'ala Ibrahim wa 'ala ali Ibrahim, wa barik 'ala Muhammad wa 'ala ali Muhammad kama barakta 'ala Ibrahim wa 'ala ali Ibrahim, fil 'alamina innaka hamidum majid.`,
+arti: 'Ya Allah, limpahkan rahmat kepada Muhammad dan keluarganya sebagaimana Engkau limpahkan kepada Ibrahim dan keluarganya, dan berkahilah Muhammad dan keluarganya sebagaimana Engkau berkahi Ibrahim dan keluarganya, di seluruh alam. Sungguh Engkau Maha Terpuji lagi Maha Mulia.',
+sumber: 'Dibaca setelah bacaan tasyahud (sama seperti slide sebelumnya), lalu dilanjutkan doa sebelum salam (HR. Bukhari dan Muslim).' },
+{ k: 'salat', kat: 'Bacaan salat', judul: 'Salam',
+arab: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللّٰهِ', latin: `Assalamu 'alaikum wa rahmatullah`,
+arti: 'Semoga keselamatan dan rahmat Allah tercurah kepada kalian.', sumber: 'Diucapkan sambil menoleh ke kanan, lalu ke kiri. Menutup salat.' },
+{ k: 'doa', kat: 'Doa', judul: 'Niat mandi wajib',
+arab: 'نَوَيْتُ الْغُسْلَ لِرَفْعِ الْحَدَثِ الْأَكْبَرِ فَرْضًا لِلّٰهِ تَعَالَى',
+latin: `Nawaitul ghusla liraf'il hadatsil akbari fardhan lillahi ta'ala`,
+arti: `Aku berniat mandi untuk menghilangkan hadas besar, fardu karena Allah Ta'ala.`,
+sumber: 'Niat dibaca dalam hati saat mulai mengguyur tubuh.' },
+{ k: 'doa', kat: 'Doa', judul: 'Niat mandi setelah haid',
+arab: 'نَوَيْتُ الْغُسْلَ لِرَفْعِ حَدَثِ الْحَيْضِ لِلّٰهِ تَعَالَى',
+latin: `Nawaitul ghusla liraf'i hadatsil haidhi lillahi ta'ala`,
+arti: `Aku berniat mandi untuk menghilangkan hadas haid karena Allah Ta'ala.`,
+sumber: 'Dibaca saat mandi setelah darah haid berhenti.' },
+{ k: 'doa', kat: 'Doa setelah salat', judul: 'Memohon dijauhkan dari neraka',
+arab: 'اللَّهُمَّ أَجِرْنَا مِنَ النَّارِ',
+latin: `Allahumma ajirna minan nar`,
+arti: 'Ya Allah, lindungilah kami dari api neraka.',
+sumber: `Diamalkan 7 kali setelah salat Subuh dan Maghrib. Dalam riwayat Abu Dawud lafaznya "ajirni" (untuk diri sendiri); sebagian ulama menilai sanadnya lemah.` },
+{ k: 'doa', kat: 'Doa sebelum salam', judul: 'Berlindung dari 4 perkara',
+arab: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ',
+latin: `Allahumma inni a'udzu bika min 'adzabi jahannam, wa min 'adzabil qabr, wa min fitnatil mahya wal mamat, wa min syarri fitnatil masihid dajjal`,
+arti: 'Ya Allah, aku berlindung kepada-Mu dari azab Jahanam, dari azab kubur, dari fitnah kehidupan dan kematian, dan dari keburukan fitnah Al-Masih Ad-Dajjal.',
+sumber: 'Dibaca setelah tasyahud akhir, sebelum salam (HR. Muslim).' },
+{ k: 'menahan', kat: 'Menahan diri', judul: 'Tidak dikuasai amarah',
+arab: 'وَالْكَاظِمِينَ الْغَيْظَ وَالْعَافِينَ عَنِ النَّاسِ ۗ وَاللَّهُ يُحِبُّ الْمُحْسِنِينَ',
+latin: `Wal kaadzimiinal ghaidza wal 'aafiina 'anin naas, wallahu yuhibbul muhsiniin`,
+arti: 'Dan orang-orang yang menahan amarahnya dan memaafkan kesalahan orang lain. Allah mencintai orang-orang yang berbuat kebaikan.',
+renungan: 'Menahan diri bukan kalah. Itu cara memilih supaya amarah tidak yang memegang kendali.',
+sumber: 'QS. Ali Imran: 134 (potongan)' },
+{ k: 'sabar', kat: 'Sabar', judul: 'Sabar dan salat',
+arab: 'يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ۚ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ',
+latin: `Yaa ayyuhal ladziina aamanuusta'iinuu bishshabri wash-shalaah, innallaaha ma'ash shaabiriin`,
+arti: 'Wahai orang-orang yang beriman, mohonlah pertolongan dengan sabar dan salat. Sesungguhnya Allah bersama orang-orang yang sabar.',
+renungan: 'Sabar bukan cuma menunggu. Tetap melangkah pelan sambil percaya.',
+sumber: 'QS. Al-Baqarah: 153' },
+{ k: 'sadar', kat: 'Sadar diri', judul: 'Menimbang diri sebelum esok',
+arab: 'وَلْتَنْظُرْ نَفْسٌ مَا قَدَّمَتْ لِغَدٍ',
+latin: `Waltandhur nafsum maa qaddamat lighad`,
+arti: 'Hendaklah setiap orang memperhatikan apa yang telah diperbuatnya untuk hari esok.',
+renungan: `"Hasibu anfusakum qabla an tuhasabu": hisablah dirimu sebelum kamu dihisab (ucapan Umar bin Khattab r.a.).`,
+sumber: 'QS. Al-Hasyr: 18 (potongan)' }
+];
+
+const POSE = {
+berdiri: [100,26, 100,40, 100,80, 108,62, 95,54, 101,101, 103,120],
+takbir: [100,26, 100,40, 100,80, 114,48, 106,34, 101,101, 103,120],
+itidal: [100,26, 100,40, 100,80, 103,62, 104,82, 101,101, 103,120],
+ruku: [141,68, 128,70, 88,70, 110,84, 92,98, 90,98, 92,120],
+sujud: [152,111, 135,102, 96,88, 124,114, 144,118, 78,112, 58,119],
+tahiyat: [97,56, 97,70, 95,108, 110,92, 124,102, 130,108, 88,119],
+doa: [97,56, 97,70, 95,108, 114,84, 128,76, 130,108, 88,119]
+};
+POSE.mandi = POSE.takbir;
+POSE.duduk = POSE.tahiyat;
+const POSE_NAMA = { berdiri: 'Berdiri (qiyam)', takbir: 'Takbiratul ihram', itidal: `I'tidal`, ruku: 'Rukuk', sujud: 'Sujud', tahiyat: 'Duduk tasyahud akhir: doa dibaca di sini', duduk: 'Duduk setelah salam', doa: 'Mengangkat tangan berdoa', mandi: 'Guyur air ke seluruh tubuh' };
+// urutan gerakan per slide, searah dengan SLIDE_DOA
+const GERAK = [
+{ s: ['berdiri', 'takbir'] },
+{ s: ['takbir', 'berdiri'] },
+{ s: ['berdiri'] },
+{ s: ['berdiri'] },
+{ s: ['berdiri', 'ruku'] },
+{ s: ['ruku', 'itidal'] },
+{ s: ['itidal', 'qunut'] },
+{ s: ['itidal', 'sujud'] },
+{ s: ['sujud', 'duduk'] },
+{ s: ['sujud', 'iftirasy'] },
+{ s: ['sujud', 'tahiyat'] },
+{ s: ['salamKanan', 'salamKiri'] },
+{ s: ['mandi'], air: true },
+{ s: ['mandi'], air: true },
+{ s: ['duduk', 'doa'] },
+{ s: ['berdiri', 'ruku', 'itidal', 'sujud', 'tahiyat'] },
+{ s: ['takbir', 'berdiri'] },
+{ s: ['berdiri', 'ruku', 'itidal'] },
+{ s: ['itidal', 'sujud'] }
+];
+Object.assign(POSE, {
+qunut: [100,26, 100,40, 100,80, 112,64, 124,54, 101,101, 103,120],
+iftirasy: POSE.tahiyat,
+salamKanan: [102,57, 97,70, 95,108, 110,92, 124,102, 130,108, 88,119],
+salamKiri: [92,57, 97,70, 95,108, 110,92, 124,102, 130,108, 88,119]
+});
+Object.assign(POSE_NAMA, { qunut: `Berdiri setelah i'tidal, tangan menengadah`, iftirasy: 'Duduk tasyahud awal', salamKanan: 'Salam ke kanan', salamKiri: 'Salam ke kiri' });
+SLIDE_DOA.forEach((x, i) => { x.g = GERAK[i]; });
+const pindah = (judul, sebelum) => {
+const [x] = SLIDE_DOA.splice(SLIDE_DOA.findIndex(y => y.judul === judul), 1);
+SLIDE_DOA.splice(SLIDE_DOA.findIndex(y => y.judul === sebelum), 0, x);
+};
+pindah('Berlindung dari 4 perkara', 'Salam');
+pindah('Memohon dijauhkan dari neraka', 'Niat mandi wajib');
+const TAHAN = 1300, GERAK_MS = 1000;
+const kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const halus = (t) => t * t * (3 - 2 * t);
+const state = [];
+let aktif = 0;
+
+function gambar(f, p) {
+f.kepala.setAttribute('cx', p[0]); f.kepala.setAttribute('cy', p[1]);
+f.torso.setAttribute('points', `${p[2]},${p[3]} ${p[4]},${p[5]}`);
+f.lengan.setAttribute('points', `${p[2]},${p[3] + 2} ${p[6]},${p[7]} ${p[8]},${p[9]}`);
+f.kaki.setAttribute('points', `${p[4]},${p[5]} ${p[10]},${p[11]} ${p[12]},${p[13]}`);
+}
+
+function renderDoa() {
+const track = document.getElementById('doa-track');
+const dots = document.getElementById('doa-dots');
+track.innerHTML = SLIDE_DOA.map((x, i) => `<article class="doa-slide ${x.k}">
+<p class="doa-kat">${x.kat}</p><h3 class="doa-judul">${x.judul}</h3>
+<svg class="gerak" viewBox="0 0 200 140" role="img" aria-label="Animasi gerakan salat">
+<line class="lantai" x1="20" y1="122" x2="180" y2="122"/>
+${SLIDE_DOA[i].g.air ? [74, 88, 102, 116, 94].map((x, n) => `<circle class="tetes" cx="${x}" cy="12" r="2.6" style="animation-delay:${n * 0.26}s"/>`).join('') : ''}
+<polyline class="kaki"/><polyline class="torso"/><polyline class="lengan"/><circle class="kepala" r="9"/>
+</svg>
+<p class="gerak-label"></p>
+<div class="doa-arab" lang="ar">${x.arab}</div>
+<p class="doa-latin">${x.latin}</p><p class="doa-arti">${x.arti}</p>
+${x.renungan ? `<p class="doa-renungan">${x.renungan}</p>` : ''}
+<p class="doa-sumber">${x.sumber}</p></article>`).join('');
+dots.innerHTML = SLIDE_DOA.map(() => '<span></span>').join('');
+const menu = document.getElementById('doa-menu');
+menu.innerHTML = SLIDE_DOA.map((x, i) => `<button class="doa-chip" data-i="${i}">${x.judul}</button>`).join('');
+menu.addEventListener('click', (e) => {
+const b = e.target.closest('.doa-chip');
+if (!b) return;
+track.scrollTo({ left: b.dataset.i * (track.firstElementChild.offsetWidth + 12), behavior: kurangGerak ? 'auto' : 'smooth' });
+});
+[...track.children].forEach((el, i) => {
+const f = { kepala: el.querySelector('.kepala'), torso: el.querySelector('.torso'), lengan: el.querySelector('.lengan'), kaki: el.querySelector('.kaki'), label: el.querySelector('.gerak-label') };
+state[i] = { f, seq: SLIDE_DOA[i].g.s, mulai: 0, teks: '' };
+gambar(f, POSE[SLIDE_DOA[i].g.s[SLIDE_DOA[i].g.s.length - 1]]);
+f.label.textContent = POSE_NAMA[SLIDE_DOA[i].g.s[SLIDE_DOA[i].g.s.length - 1]];
+});
+const tandai = () => {
+const lebar = track.firstElementChild.offsetWidth + 12;
+const i = Math.min(SLIDE_DOA.length - 1, Math.round(track.scrollLeft / lebar));
+[...dots.children].forEach((d, n) => d.classList.toggle('on', n === i));
+[...menu.children].forEach((c, n) => c.classList.toggle('on', n === i));
+track.style.height = track.children[i].offsetHeight + 'px';
+if (i !== aktif) { aktif = i; state[i].mulai = performance.now();
+menu.scrollTo({ left: menu.children[i].offsetLeft - 20, behavior: 'smooth' }); }
+};
+track.addEventListener('scroll', tandai, { passive: true });
+tandai();
+window.addEventListener('resize', tandai);
+if (document.fonts) document.fonts.ready.then(tandai);
+if (!kurangGerak) requestAnimationFrame(putar);
+}
+
+function putar(now) {
+const st = state[aktif];
+const n = st.seq.length;
+if (!st.mulai) st.mulai = now;
+if (n > 1) {
+const durasi = TAHAN + GERAK_MS;
+const t = (now - st.mulai) % (durasi * n);
+const i = Math.floor(t / durasi);
+const lokal = t - i * durasi;
+const dari = POSE[st.seq[i]];
+const ke = POSE[st.seq[(i + 1) % n]];
+const k = (i === n - 1 || lokal < TAHAN) ? 0 : halus((lokal - TAHAN) / GERAK_MS);
+gambar(st.f, dari.map((v, j) => v + (ke[j] - v) * k));
+const teks = POSE_NAMA[st.seq[k < 0.5 ? i : (i + 1) % n]];
+if (teks !== st.teks) { st.teks = teks; st.f.label.textContent = teks; }
+}
+requestAnimationFrame(putar);
+}
+
+window.onload = renderDoa;
+</script>
+</body>
+</html>

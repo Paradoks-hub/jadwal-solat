@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandi Wajib, Jenazah, Jumat &amp; Gerhana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --ink: #16232a;
+        --muted: #64777d;
+        --bg: #e9eeec;
+        --card: #ffffff;
+        --teal: #0e5f5a;
+        --teal-dark: #0a3d3f;
+        --gold: #b8862e;
+        --gold-light: #e2b45c;
+        --line: #dfe6e4;
+        --ring: rgba(184, 134, 46, 0.35);
+
+        /* sky states, swapped by JS as the day progresses */
+        --sky-a: #dce9e6;
+        --sky-b: #eef4ee;
+        --sky-dot: rgba(14, 95, 90, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        margin: 0;
+        padding: 28px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -20px rgba(14, 62, 60, 0.35), 0 2px 8px rgba(14,62,60,0.06);
+        border: 1px solid var(--line);
+    }
+
+    /* geometric motif strip — nod to Islamic tilework, kept quiet */
+    .motif {
+        height: 6px;
+        background: repeating-linear-gradient(
+            135deg,
+            var(--teal) 0px, var(--teal) 6px,
+            var(--gold) 6px, var(--gold) 12px,
+            transparent 12px, transparent 18px
+        );
+        opacity: 0.85;
+    }
+
+    header {
+        padding: 26px 26px 6px;
+        text-align: center;
+    }
+
+    .eyebrow {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 700;
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 27px;
+        color: var(--teal-dark);
+        letter-spacing: 0.01em;
+    }
+
+    .meta {
+        margin: 2px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
+    /* --- signature element: the sun's daily arc, dawn to dusk --- */
+    .arc-wrap {
+        position: relative;
+        margin: 22px 14px 8px;
+        aspect-ratio: 300 / 132;
+    }
+
+    /* background layer only — clipped to rounded corners */
+    .arc-sky {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+        background-image:
+            radial-gradient(circle, var(--sky-dot) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+        transition: background 0.8s ease;
+        overflow: hidden;
+    }
+
+    .arc-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* markers live outside the clipped layer so labels never get cut off */
+    .arc-markers, .arc-now { position: absolute; inset: 0; }
+
+    .arc-svg path {
+        fill: none;
+        stroke: rgba(14, 62, 60, 0.28);
+        stroke-width: 1.4;
+        stroke-dasharray: 1 6;
+        stroke-linecap: round;
+    }
+
+    .arc-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .arc-marker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 3px rgba(14, 95, 90, 0.12);
+    }
+
+    .arc-marker.aktif .dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .arc-marker .label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .arc-marker.aktif .label { color: var(--gold); }
+
+    .arc-now {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px 2px rgba(184, 134, 46, 0.55);
+        transform: translate(-50%, -50%);
+        transition: left 1s linear, top 1s linear;
+    }
+
+    .countdown-box {
+        margin: 18px 20px 0;
+        background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .countdown-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    .countdown-timer {
+        font-size: 38px;
+        font-weight: 800;
+        margin: 6px 0 0;
+        font-variant-numeric: tabular-nums;
+        color: var(--gold-light);
+        letter-spacing: 0.02em;
+    }
+
+    .jadwal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 20px 20px 24px;
+    }
+
+    .jadwal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f4f7f6;
+        border-radius: 10px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .jadwal-item .nama {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 14.5px;
+    }
+
+    .jadwal-item .nama svg { flex-shrink: 0; }
+
+    .jadwal-item.aktif {
+        background: #fbf3e4;
+        border-left-color: var(--gold);
+    }
+
+    .jadwal-item.aktif .nama { color: var(--teal-dark); }
+
+    .waktu {
+        font-size: 16.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--teal-dark);
+    }
+
+    .jadwal-item.aktif .waktu { color: var(--gold); }
+
+    .arc-now.malam {
+background: #cfd8e6;
+box-shadow: 0 0 10px 2px rgba(120, 140, 180, 0.5);
+}
+.hari-besar { padding: 0 20px 24px; }
+.hari-besar h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.hb-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: #f4f7f6; border-radius: 10px; margin-bottom: 8px; }
+.hb-nama { font-weight: 600; font-size: 14px; color: var(--teal-dark); }
+.hb-tgl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hb-sisa { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.hb-catatan { margin: 6px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.doa { padding: 0 0 24px; }
+.doa h2, .haid h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.doa h2 { padding: 0 20px; }
+.doa-track { display: flex; align-items: flex-start; overflow-y: hidden; transition: height 0.3s ease; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 20px; padding: 0 20px; scrollbar-width: none; }
+.doa-track::-webkit-scrollbar { display: none; }
+.doa-slide { flex: 0 0 100%; box-sizing: border-box; scroll-snap-align: start; padding: 16px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.doa-slide.menahan { background: #fbf3e4; border-top-color: var(--gold); }
+.doa-slide.sabar { background: #e8f1ee; border-top-color: #4d8f7a; }
+.doa-slide.sadar { background: #eceff6; border-top-color: #5b6b8c; }
+.doa-kat { margin: 0; font-size: 12px; font-weight: 700; color: var(--gold); }
+.doa-judul { margin: 2px 0 12px; font-size: 15px; font-weight: 700; color: var(--teal-dark); }
+.doa-arab { font-family: 'Amiri', serif; font-size: 25px; line-height: 2; direction: rtl; text-align: right; }
+.doa-latin { margin: 10px 0 6px; font-size: 13px; font-style: italic; line-height: 1.5; color: var(--muted); }
+.doa-arti { margin: 0; font-size: 13.5px; line-height: 1.6; }
+.doa-renungan { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: var(--teal-dark); }
+.doa-sumber { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.doa-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.doa-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--line); transition: all 0.3s ease; }
+.doa-dots span.on { width: 16px; background: var(--gold); }
+.haid { padding: 0 20px 24px; }
+.haid-box { background: #f4f7f6; border-radius: 14px; padding: 16px; }
+.haid-status { margin: 0 0 4px; font-weight: 700; color: var(--teal-dark); }
+.haid-info { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.haid-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.haid-btn { font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px 14px; border: 0; border-radius: 10px; background: var(--teal); color: #fff; cursor: pointer; }
+.haid-btn.alt { background: #fff; color: var(--teal-dark); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) {
+        .arc-now { transition: none; }
+    }
+
+.doa-menu { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px; scrollbar-width: none; }
+.doa-menu::-webkit-scrollbar { display: none; }
+.doa-chip { flex: 0 0 auto; font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--teal-dark); white-space: nowrap; cursor: pointer; }
+.doa-chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.doa-kembali { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+.gerak { display: block; width: 100%; height: auto; max-height: 150px; margin: 0 0 4px; }
+.gerak .lantai { stroke: var(--line); stroke-width: 2; }
+.gerak polyline { fill: none; stroke: var(--teal-dark); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.gerak .kepala { fill: var(--teal); }
+.gerak .tetes { fill: #5ba9c4; opacity: 0; animation: jatuh 1.3s linear infinite; }
+@keyframes jatuh { 0% { transform: translateY(-8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(78px); opacity: 0; } }
+.gerak-label { min-height: 18px; margin: 0 0 10px; font-size: 12px; font-weight: 600; text-align: center; color: var(--gold); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul { margin: 6px 0; padding-left: 18px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi h3 { margin: 14px 0 4px; font-size: 14px; color: var(--teal-dark); }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul, .isi ol { margin: 6px 0; padding-left: 20px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.kotak { margin: 10px 0; padding: 14px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.arab { font-family: 'Amiri', serif; font-size: 23px; line-height: 2; direction: rtl; text-align: right; margin: 6px 0 0; }
+.latin { margin: 4px 0; font-size: 12.5px; font-style: italic; line-height: 1.5; color: var(--muted); }
+
+
+</style>
+</head>
+<body>
+<div class="card">
+<div class="motif"></div>
+<header>
+<p class="eyebrow">Fikih ibadah</p>
+<h1>Mandi Wajib, Jenazah, Jumat &amp; Gerhana</h1>
+<p class="meta">Tata cara lengkap dengan bacaannya</p>
+<a class="doa-kembali" href="index.html">‹ Kembali ke jadwal</a> &nbsp;·&nbsp; <a class="doa-kembali" href="hukum-salat.html">Hukum salat ›</a>
+</header>
+<nav class="doa-menu" aria-label="Menu pintas">
+<a class="doa-chip" href="#mandi">Mandi wajib</a>
+<a class="doa-chip" href="#jenazah">Salat jenazah</a>
+<a class="doa-chip" href="#jumat">Salat Jumat</a>
+<a class="doa-chip" href="#gerhana">Salat gerhana</a>
+</nav>
+<main class="isi">
+<p class="catatan">Penjelasan ini mengikuti mazhab Syafi'i sebagai acuan utama. Untuk keputusan hukum, rujuk ke ustaz atau kitab yang kamu ikuti.</p>
+
+<h2 id="mandi">Mandi wajib (mandi besar)</h2>
+<h3>Penyebab wajib mandi</h3>
+<ul>
+<li>Keluar mani, baik karena mimpi maupun sebab lain.</li>
+<li>Hubungan suami istri (masuknya kepala kemaluan laki-laki ke kemaluan perempuan), meski tidak keluar mani.</li>
+<li>Selesai haid, selesai nifas, dan setelah melahirkan (wiladah).</li>
+<li>Meninggal dunia (jenazah muslim dimandikan, kecuali yang mati syahid di medan perang).</li>
+</ul>
+<h3>Rukun</h3>
+<p>Dua saja: <b>niat</b>, dan <b>meratakan air ke seluruh tubuh</b> (kulit dan rambut, termasuk bagian yang tersembunyi seperti lipatan, pusar, dan di bawah kuku).</p>
+<h3>Niat</h3>
+<div class="kotak"><div class="arab" lang="ar">نَوَيْتُ الْغُسْلَ لِرَفْعِ الْحَدَثِ الْأَكْبَرِ فَرْضًا لِلّٰهِ تَعَالَى</div><p class="latin">Nawaitul ghusla liraf'il hadatsil akbari fardhan lillahi ta'ala</p><p>Aku berniat mandi untuk menghilangkan hadas besar, fardu karena Allah Ta'ala (setelah junub).</p></div><div class="kotak"><div class="arab" lang="ar">نَوَيْتُ الْغُسْلَ لِرَفْعِ حَدَثِ الْحَيْضِ لِلّٰهِ تَعَالَى</div><p class="latin">Nawaitul ghusla liraf'i hadatsil haidhi lillahi ta'ala</p><p>Aku berniat mandi untuk menghilangkan hadas haid karena Allah Ta'ala.</p></div><div class="kotak"><div class="arab" lang="ar">نَوَيْتُ الْغُسْلَ لِرَفْعِ حَدَثِ النِّفَاسِ لِلّٰهِ تَعَالَى</div><p class="latin">Nawaitul ghusla liraf'i hadatsin nifasi lillahi ta'ala</p><p>Aku berniat mandi untuk menghilangkan hadas nifas karena Allah Ta'ala.</p></div>
+<h3>Urutan yang disunnahkan</h3>
+<ol>
+<li>Baca "Bismillah" dan niat, lalu cuci kedua telapak tangan.</li>
+<li>Bersihkan kemaluan dan najis yang menempel dengan tangan kiri.</li>
+<li>Berwudu seperti wudu untuk salat.</li>
+<li>Siram kepala 3 kali sambil menyela pangkal rambut dengan jari.</li>
+<li>Guyur seluruh badan, mulai sisi kanan lalu kiri, sambil menggosok.</li>
+<li>Pastikan semua bagian terkena air, terakhir cuci kaki bila belum.</li>
+</ol>
+<p>Perempuan tidak wajib mengurai rambutnya selama air sampai ke kulit kepala (HR. Muslim, hadis Ummu Salamah).</p>
+<h3>Yang dilarang bagi orang yang berhadas besar</h3>
+<p>Salat, tawaf, menyentuh atau membawa mushaf, dan berdiam di masjid. Menurut Syafi'i, membaca Al-Qur'an dengan niat tilawah juga dilarang, sedangkan berzikir dan berdoa boleh.</p>
+
+<h2 id="jenazah">Salat jenazah</h2>
+<p>Mengurus jenazah muslim adalah <b>fardu kifayah</b>: dimandikan, dikafani, disalatkan, dan dikuburkan. Bila sebagian orang sudah melakukannya, gugurlah kewajiban yang lain.</p>
+<h3>Syarat dan ketentuan</h3>
+<ul>
+<li>Syarat salat biasa: suci, menutup aurat, menghadap kiblat.</li>
+<li>Jenazah sudah dimandikan dan dikafani, lalu diletakkan di depan, kecuali salat gaib untuk jenazah di tempat jauh.</li>
+<li>Imam berdiri sejajar kepala jenazah laki-laki, atau sejajar pinggang jenazah perempuan. Salat dikerjakan berdiri, <b>tanpa rukuk dan sujud</b>.</li>
+</ul>
+<h3>Niat</h3>
+<div class="kotak"><div class="arab" lang="ar">أُصَلِّي عَلَى هٰذَا الْمَيِّتِ أَرْبَعَ تَكْبِيرَاتٍ فَرْضَ كِفَايَةٍ مَأْمُومًا لِلّٰهِ تَعَالَى</div><p class="latin">Ushalli 'ala hadzal mayyiti arba'a takbiratin fardha kifayatin ma'muman lillahi ta'ala</p><p>Aku berniat menyalatkan jenazah laki-laki ini empat takbir, fardu kifayah, sebagai makmum karena Allah Ta'ala. Untuk perempuan ganti "hadzal mayyiti" dengan "hadzihil mayyitah" (هٰذِهِ الْمَيِّتَةِ); untuk imam ganti "ma'muman" dengan "imaman".</p></div>
+<h3>Empat takbir dan bacaannya</h3>
+<div class="tabel-bungkus"><table>
+<tr><th>Takbir</th><th>Bacaan</th></tr>
+<tr><td>1</td><td>Takbiratul ihram, lalu membaca Al-Fatihah.</td></tr>
+<tr><td>2</td><td>Membaca shalawat Nabi (minimal "Allahumma shalli 'ala Muhammad", lebih baik shalawat Ibrahimiyyah).</td></tr>
+<tr><td>3</td><td>Doa untuk jenazah (di bawah).</td></tr>
+<tr><td>4</td><td>Doa untuk jenazah dan yang ditinggalkan (di bawah), lalu salam ke kanan dan kiri.</td></tr>
+</table></div>
+<h3>Doa takbir ketiga</h3>
+<div class="kotak">
+<div class="arab" lang="ar">اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ</div>
+<p class="latin">Allahummaghfir lahu warhamhu wa 'afihi wa'fu 'anhu</p>
+<p>Ya Allah, ampunilah dia, rahmatilah dia, selamatkanlah dia, dan maafkanlah dia. (Untuk jenazah perempuan: "lahaa, warhamhaa, wa 'afihaa, wa'fu 'anhaa".)</p>
+<p class="latin">Lafaz inti dari doa dalam HR. Muslim.</p>
+</div>
+<h3>Doa takbir keempat</h3>
+<div class="kotak">
+<div class="arab" lang="ar">اللّٰهُمَّ لَا تَحْرِمْنَا أَجْرَهُ وَلَا تَفْتِنَّا بَعْدَهُ وَاغْفِرْ لَنَا وَلَهُ</div>
+<p class="latin">Allahumma la tahrimna ajrahu wa la taftinna ba'dahu waghfir lana wa lahu</p>
+<p>Ya Allah, jangan halangi kami dari pahalanya, jangan timpakan fitnah kepada kami sesudahnya, dan ampunilah kami dan dia.</p>
+</div>
+<p>Salam: <span class="arab" lang="ar" style="font-size:20px">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللّٰهِ</span></p>
+<p class="catatan">Keutamaan: yang menyaksikan jenazah hingga disalatkan mendapat satu qirat pahala, dan yang mengikutinya sampai dikuburkan mendapat dua qirat, sebesar dua gunung (HR. Bukhari dan Muslim).</p>
+
+<h2 id="jumat">Salat Jumat</h2>
+<div class="kotak">
+<div class="arab" lang="ar">يَا أَيُّهَا الَّذِينَ آمَنُوا إِذَا نُودِيَ لِلصَّلَاةِ مِن يَوْمِ الْجُمُعَةِ فَاسْعَوْا إِلَىٰ ذِكْرِ اللَّهِ وَذَرُوا الْبَيْعَ</div>
+<p>Wahai orang-orang yang beriman, apabila diseru untuk salat pada hari Jumat, maka segeralah mengingat Allah dan tinggalkanlah jual beli.</p>
+<p class="latin">QS. Al-Jumu'ah: 9</p>
+</div>
+<h3>Hukum dan syarat wajib</h3>
+<ul>
+<li>Fardu 'ain bagi laki-laki muslim, baligh, berakal, sehat, dan mukim (tidak sedang bepergian).</li>
+<li>Perempuan, musafir, anak-anak, dan orang sakit tidak wajib, dan mengerjakan Dzuhur sebagai gantinya. Jika mereka ikut Jumat, salatnya sah.</li>
+</ul>
+<h3>Syarat sah (menurut Syafi'i)</h3>
+<ul>
+<li>Dikerjakan pada waktu Dzuhur, di tempat yang berpenduduk tetap.</li>
+<li>Berjamaah, dengan jumlah minimal 40 laki-laki mukim. Mazhab lain mensyaratkan jumlah yang lebih sedikit (Hanafi: tiga orang selain imam, Maliki: dua belas orang).</li>
+<li>Didahului dua khutbah.</li>
+</ul>
+<h3>Rukun khutbah (menurut Syafi'i)</h3>
+<ol>
+<li>Memuji Allah (hamdalah) di kedua khutbah.</li>
+<li>Bershalawat kepada Nabi di kedua khutbah.</li>
+<li>Berwasiat takwa di kedua khutbah.</li>
+<li>Membaca satu ayat Al-Qur'an di salah satu khutbah.</li>
+<li>Berdoa untuk kaum mukminin di khutbah kedua.</li>
+</ol>
+<p>Khatib berdiri bila mampu, dan duduk sebentar di antara dua khutbah.</p>
+<div class="kotak"><div class="arab" lang="ar">أُصَلِّي فَرْضَ الْجُمُعَةِ رَكْعَتَيْنِ مُسْتَقْبِلَ الْقِبْلَةِ مَأْمُومًا لِلّٰهِ تَعَالَى</div><p class="latin">Ushalli fardhal jumu'ati rak'ataini mustaqbilal qiblati ma'muman lillahi ta'ala</p><p>Aku berniat salat fardu Jumat dua rakaat menghadap kiblat sebagai makmum karena Allah Ta'ala.</p></div>
+<h3>Sunnah dan adab</h3>
+<ul>
+<li>Mandi, memakai pakaian terbaik dan wewangian, bersiwak, dan datang lebih awal.</li>
+<li>Mendengarkan khutbah dengan tenang. Berkata "diam" kepada temanmu saat khatib berkhutbah pun dinilai sia-sia (HR. Bukhari dan Muslim).</li>
+<li>Memperbanyak shalawat pada hari Jumat (HR. Abu Dawud), dan membaca surah Al-Kahf.</li>
+<li>Menghentikan jual beli setelah azan Jumat (QS. Al-Jumu'ah: 9).</li>
+</ul>
+<p>Rakaat pertama biasanya membaca Al-Jumu'ah atau Al-A'la, dan rakaat kedua Al-Munafiqun atau Al-Ghasyiyah (HR. Muslim), dengan bacaan keras.</p>
+<p class="catatan">Masbuq: bila sempat mendapat rukuk rakaat kedua bersama imam, tambahkan satu rakaat setelah imam salam. Bila tidak sempat, salat itu dikerjakan sebagai Dzuhur empat rakaat.</p>
+
+<h2 id="gerhana">Salat gerhana</h2>
+<p>Salat gerhana matahari (kusuf) dan gerhana bulan (khusuf) hukumnya sunnah muakkad. Nabi bersabda bahwa matahari dan bulan adalah tanda kebesaran Allah dan tidak gerhana karena kematian atau kelahiran seseorang. Bila melihatnya, berdoalah, bertakbirlah, salatlah, dan bersedekahlah (HR. Bukhari dan Muslim).</p>
+<h3>Niat</h3>
+<div class="kotak"><div class="arab" lang="ar">أُصَلِّي سُنَّةَ الْكُسُوفِ رَكْعَتَيْنِ مَأْمُومًا لِلّٰهِ تَعَالَى</div><p class="latin">Ushalli sunnatal kusufi rak'ataini ma'muman lillahi ta'ala</p><p>Aku berniat salat sunnah gerhana matahari dua rakaat sebagai makmum karena Allah Ta'ala. Untuk gerhana bulan ganti "kusufi" dengan "khusufi" (الْخُسُوفِ).</p></div>
+<h3>Tata cara yang paling sempurna</h3>
+<ol>
+<li>Dua rakaat, dikerjakan berjamaah, dengan <b>dua kali berdiri dan dua kali rukuk dalam setiap rakaat</b>.</li>
+<li>Rakaat pertama: takbiratul ihram, doa iftitah, Al-Fatihah, lalu surah panjang (setara Al-Baqarah). Rukuk panjang, lalu i'tidal.</li>
+<li>Tanpa sujud, berdiri lagi: Al-Fatihah dan surah yang lebih pendek, rukuk panjang, i'tidal, lalu sujud dua kali yang panjang dengan duduk di antaranya.</li>
+<li>Rakaat kedua dikerjakan sama seperti rakaat pertama, dengan bacaan sedikit lebih pendek, lalu tasyahud dan salam.</li>
+<li>Setelah salat, imam menyampaikan dua khutbah yang mengingatkan untuk bertobat, berzikir, dan bersedekah.</li>
+</ol>
+<p>Menurut Syafi'i, bacaan dipelankan pada gerhana matahari (siang) dan dikeraskan pada gerhana bulan (malam). Waktunya selama gerhana berlangsung, dan bila gerhana sudah usai, salatnya tidak lagi dikerjakan.</p>
+</main>
+</div>
+</body>
+</html>
