@@ -416,38 +416,66 @@ const W = 1080, H = 1350;
 const c = kartu.getContext('2d');
 kartu.width = W; kartu.height = H;
 try { await Promise.all([document.fonts.load('800 80px Inter'), document.fonts.load('700 80px Amiri')]); } catch (e) {}
+
+// Background Gradient
 const bg = c.createLinearGradient(0, 0, W, H);
 bg.addColorStop(0, '#0a2f2d'); bg.addColorStop(0.55, '#0f4a45'); bg.addColorStop(1, '#16625a');
 c.fillStyle = bg; c.fillRect(0, 0, W, H);
+
+// Geometric Pattern
 c.strokeStyle = 'rgba(227,192,112,0.10)'; c.lineWidth = 2;
 for (let y = 0; y < H + 120; y += 120) {
 for (let x = (y / 120 % 2) * 60; x < W + 120; x += 120) {
 c.save(); c.translate(x, y); c.strokeRect(-24, -24, 48, 48); c.rotate(Math.PI / 4); c.strokeRect(-24, -24, 48, 48); c.restore();
 }
 }
+
+// --- HEADER KAPSUL TRANSPARAN UNTUK LINK (RAPI & ELEGAN) ---
+const boxW = 560, boxH = 50, boxX = (W - boxW) / 2, boxY = 40;
+c.fillStyle = 'rgba(255, 255, 255, 0.08)'; // transparan halus
+c.strokeStyle = 'rgba(227, 192, 112, 0.3)'; // garis pinggir emas tipis
+c.lineWidth = 1.5;
+
+c.beginPath();
+if (c.roundRect) {
+    c.roundRect(boxX, boxY, boxW, boxH, 25);
+} else {
+    c.rect(boxX, boxY, boxW, boxH);
+}
+c.fill();
+c.stroke();
+
+// Teks URL Link di tengah kapsul
+c.textAlign = 'center';
+c.fillStyle = 'rgba(255, 255, 255, 0.85)';
+c.font = '500 22px Inter, system-ui, sans-serif';
+c.fillText('paradoks-hub.github.io/jadwal-solat', W / 2, boxY + 33);
+
+// --- MOON & STARS (Posisi diturunkan sedikit agar tidak menabrak) ---
 const o = document.createElement('canvas');
 o.width = o.height = 300;
 const x = o.getContext('2d');
 x.fillStyle = '#e3c070'; x.beginPath(); x.arc(150, 150, 110, 0, 7); x.fill();
 x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.arc(200, 125, 100, 0, 7); x.fill();
 c.shadowColor = 'rgba(227,192,112,0.55)'; c.shadowBlur = 40;
-c.drawImage(o, 380, 50);
+c.drawImage(o, 380, 110); // diturunkan ke Y=110 agar pas di bawah kapsul link
 c.shadowBlur = 0;
 c.fillStyle = '#e3c070';
-[[720, 150, 7], [790, 240, 4], [660, 96, 3.5], [820, 120, 3]].forEach(([a, b, r]) => { c.beginPath(); c.arc(a, b, r, 0, 7); c.fill(); });
+[[720, 200, 7], [790, 290, 4], [660, 146, 3.5], [820, 170, 3]].forEach(([a, b, r]) => { c.beginPath(); c.arc(a, b, r, 0, 7); c.fill(); });
 
-c.textAlign = 'center';
+// --- TEKS UTAMA ---
 if ('letterSpacing' in c) c.letterSpacing = '8px';
 c.font = '600 36px Inter, system-ui, sans-serif'; c.fillStyle = '#e3c070';
-c.fillText(`RAMADAN ${h.tahun} H`, W / 2, 450);
+c.fillText(`RAMADAN ${h.tahun} H`, W / 2, 470);
 if ('letterSpacing' in c) c.letterSpacing = '0px';
 c.font = '800 92px Inter, system-ui, sans-serif'; c.fillStyle = '#ffffff';
-c.fillText(`Puasa Hari ke-${h.no}`, W / 2, 560);
+c.fillText(`Puasa Hari ke-${h.no}`, W / 2, 575);
 c.font = '500 38px Inter, system-ui, sans-serif'; c.fillStyle = 'rgba(255,255,255,0.78)';
-c.fillText(fmtTgl(h.tgl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), W / 2, 625);
+c.fillText(fmtTgl(h.tgl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), W / 2, 638);
 c.font = '700 84px Amiri, serif'; c.fillStyle = '#e3c070';
-c.fillText('رَمَضَانُ كَرِيمٌ', W / 2, 745);
+c.fillText('رَمَضَانُ كَرِيمٌ', W / 2, 750);
 
+// --- KOTAK JADWAL (IMSAK, SUBUH, BERBUKA) ---
 const rr = (a, b, w, hh, r) => { c.beginPath(); if (c.roundRect) c.roundRect(a, b, w, hh, r); else c.rect(a, b, w, hh); };
 const kolom = [['IMSAK', h.imsak, 'Batas sahur'], ['SUBUH', h.subuh, 'Mulai puasa'], ['BERBUKA', h.buka, 'Waktu Maghrib']];
 kolom.forEach(([label, waktu, ket], i) => {
@@ -462,16 +490,16 @@ c.font = '800 84px Inter, system-ui, sans-serif'; c.fillText(waktu, px + 146, py
 c.fillStyle = utama ? 'rgba(10,47,45,0.75)' : 'rgba(255,255,255,0.65)';
 c.font = '500 26px Inter, system-ui, sans-serif'; c.fillText(ket, px + 146, py + 244);
 });
+
+// --- FOOTER TEKS ---
 c.fillStyle = '#ffffff'; c.font = '600 32px Inter, system-ui, sans-serif';
-c.fillText(`${lokasi.nama} · ${labelZona(-h.tgl.getTimezoneOffset() / 60)}`, W / 2, 1190);
+c.fillText(`${lokasi.nama} · ${labelZona(-h.tgl.getTimezoneOffset() / 60)}`, W / 2, 1180);
 
 c.fillStyle = 'rgba(255,255,255,0.55)'; c.font = '500 24px Inter, system-ui, sans-serif';
-c.fillText('Perkiraan waktu, ikuti ketetapan Kemenag setempat', W / 2, 1238);
-c.fillText('Lintasan Waktu Salat', W / 2, 1276);
+c.fillText('Perkiraan waktu, ikuti ketetapan Kemenag setempat', W / 2, 1228);
 
-// Penambahan Teks Paling Bawah saat di-share / disimpan
 c.fillStyle = '#e3c070'; c.font = '600 24px Inter, system-ui, sans-serif';
-c.fillText('Aplikasi Jadwal Solat by @novan', W / 2, 1314);
+c.fillText('Aplikasi Jadwal Solat by @novan', W / 2, 1272);
 }
 
 function renderPilihan() {
