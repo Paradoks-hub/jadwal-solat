@@ -1,20 +1,32 @@
-# <img src="favicon.svg" width="32" height="32" alt="Favicon" align="center"> Jadwal Solat, Arah Kiblat & Belajar Islam
+<p align="center">
+  <img src="favicon.svg" width="64" height="64" alt="Logo Jadwal Solat">
+</p>
 
-Website ini adalah platform independen yang dibangun khusus untuk **edukasi, pembelajaran agama Islam, dan pelayanan ibadah masyarakat** secara gratis, nirlaba (tanpa profit), dan bebas dari iklan commercial.
+<h1 align="center">Jadwal Solat, Arah Kiblat & Belajar Islam</h1>
+
+<p align="center">
+  Platform independen gratis, nirlaba, dan bebas iklan untuk edukasi serta pelayanan ibadah masyarakat.
+</p>
+
+<p align="center">
+  <a href="https://paradoks-hub.github.io/jadwal-solat/"><strong>Buka Website »</strong></a>
+</p>
 
 ---
 
-## 🕌 Himbauan Etis & Pesan Kemanusiaan (Untuk Security Researcher & Developer)
+## 🕌 Himbauan Etis & Pesan Kemanusiaan
+
+*(Khusus untuk Security Researcher, Developer, & Pengunjung Repository)*
 
 > **"Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lainnya."** *(HR. Ahmad)*
 
-Kepada para praktisi *cybersecurity*, peretas (*hacker*), maupun siapa saja yang menemukan repository/situs ini:
+Kepada rekan-rekan praktisi *cybersecurity*, peretas (*hacker*), maupun siapa saja yang menemukan repository/situs ini:
 
 1. **Situs Edukasi Agama Nirlaba**: Website ini dibuat murni untuk membantu masyarakat menjalankan ibadah sehari-hari (jadwal salat, arah kiblat, panduan doa, kalender puasa, dan kalkulator zakat). Tidak ada keuntungan finansial maupun komersial yang diambil dari project ini.
-2. **Mohon Tidak Memasang Tautan Judi Online (Judol) / Deface**: Penyusupan script judi online, *backlink* ilegal, maupun pengrusakan (*deface*) pada situs pembelajaran agama sangat merugikan masyarakat umum yang sedang belajar dan beribadah. 
-3. **Dukungan Bug Bounty / Responsible Disclosure**: Jika Anda menemukan kerentanan (*vulnerability*) atau celah keamanan pada kode website ini, kami sangat memohon kesediaan Anda untuk memberitahu kami secara baik-baik melalui *Issue* di repository ini atau kontak pengembang, agar dapat segera kami perbaiki demi kenyamanan bersama.
+2. **Mohon Tidak Memasang Tautan Judi Online (Judol) / Deface**: Penyusupan script judi online, *backlink* ilegal, maupun pengrusakan (*deface*) pada situs pembelajaran agama sangat merugikan masyarakat umum yang sedang belajar dan beribadah.
+3. **Dukungan Bug Bounty / Responsible Disclosure**: Jika Anda menemukan kerentanan (*vulnerability*) atau celah keamanan pada kode website ini, kami sangat memohon kesediaan Anda untuk memberitahu kami secara baik-baik melalui fitur *Issue* repository ini agar dapat segera kami perbaiki.
 
-Mari kita jaga bersama ruang digital yang sehat dan bermanfaat untuk umat.
+Mari kita jaga bersama ruang digital yang sehat, aman, dan bermanfaat untuk sesama.
 
 ---
 
