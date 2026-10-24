@@ -1,0 +1,36 @@
+{
+ "name": "Jadwal Solat",
+ "short_name": "Jadwal Solat",
+ "description": "Jadwal salat, arah kiblat, kalender puasa, doa, dan panduan fikih ibadah.",
+ "lang": "id",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#0f4a45",
+ "theme_color": "#0f4a45",
+ "categories": [
+  "lifestyle",
+  "education"
+ ],
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
