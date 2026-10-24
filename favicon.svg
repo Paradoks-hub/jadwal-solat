@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Background Rounded Box -->
+  <rect width="512" height="512" rx="112" fill="#0f4a45" />
+
+  <!-- Masjid Group (Gold Colors) -->
+  <g fill="#e2b45c" stroke="#b8862e" stroke-width="4" stroke-linejoin="round">
+    
+    <!-- Bulan Sabit Atas Kubah -->
+    <path d="M 256 68 A 22 22 0 1 0 274 94 A 18 18 0 1 1 256 68 Z" fill="#f5d68d" />
+
+    <!-- Kubah Utama -->
+    <path d="M 256 98 C 210 140 180 180 180 250 L 332 250 C 332 180 302 140 256 98 Z" />
+
+    <!-- Menara Kiri -->
+    <!-- Puncak Menara Kiri -->
+    <path d="M 120 135 L 132 175 L 108 175 Z" />
+    <rect x="116" y="175" width="8" height="15" rx="2" />
+    <!-- Kubah Kecil Menara Kiri -->
+    <path d="M 120 190 C 105 205 100 215 100 230 L 140 230 C 140 215 135 205 120 190 Z" />
+    <!-- Badan Menara Kiri -->
+    <rect x="106" y="230" width="28" height="180" rx="3" />
+    <line x1="102" y1="290" x2="138" y2="290" stroke="#b8862e" stroke-width="6" />
+    <line x1="100" y1="350" x2="140" y2="350" stroke="#b8862e" stroke-width="6" />
+
+    <!-- Menara Kanan -->
+    <!-- Puncak Menara Kanan -->
+    <path d="M 392 135 L 404 175 L 380 175 Z" />
+    <rect x="388" y="175" width="8" height="15" rx="2" />
+    <!-- Kubah Kecil Menara Kanan -->
+    <path d="M 392 190 C 377 205 372 215 372 230 L 412 230 C 412 215 407 205 392 190 Z" />
+    <!-- Badan Menara Kanan -->
+    <rect x="378" y="230" width="28" height="180" rx="3" />
+    <line x1="374" y1="290" x2="410" y2="290" stroke="#b8862e" stroke-width="6" />
+    <line x1="372" y1="350" x2="412" y2="350" stroke="#b8862e" stroke-width="6" />
+
+    <!-- Bangunan Utama / Dinding -->
+    <rect x="160" y="250" width="192" height="160" rx="4" />
+
+    <!-- Pintu Gerbang Utama (Alhambra Arch) -->
+    <path d="M 216 410 L 216 320 C 216 280 296 280 296 320 L 296 410 Z" fill="#0f4a45" stroke="#b8862e" stroke-width="6" />
+    
+    <!-- Jendela Kiri & Kanan -->
+    <path d="M 175 330 L 175 300 C 175 285 195 285 195 300 L 195 330 Z" fill="#0f4a45" stroke="#b8862e" stroke-width="3" />
+    <path d="M 317 330 L 317 300 C 317 285 337 285 337 300 L 337 330 Z" fill="#0f4a45" stroke="#b8862e" stroke-width="3" />
+
+    <!-- Alas Dasar -->
+    <rect x="80" y="410" width="352" height="24" rx="6" fill="#b8862e" />
+  </g>
+</svg>
