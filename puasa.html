@@ -463,10 +463,15 @@ c.fillStyle = utama ? 'rgba(10,47,45,0.75)' : 'rgba(255,255,255,0.65)';
 c.font = '500 26px Inter, system-ui, sans-serif'; c.fillText(ket, px + 146, py + 244);
 });
 c.fillStyle = '#ffffff'; c.font = '600 32px Inter, system-ui, sans-serif';
-c.fillText(`${lokasi.nama} · ${labelZona(-h.tgl.getTimezoneOffset() / 60)}`, W / 2, 1210);
+c.fillText(`${lokasi.nama} · ${labelZona(-h.tgl.getTimezoneOffset() / 60)}`, W / 2, 1190);
+
 c.fillStyle = 'rgba(255,255,255,0.55)'; c.font = '500 24px Inter, system-ui, sans-serif';
-c.fillText('Perkiraan waktu, ikuti ketetapan Kemenag setempat', W / 2, 1262);
-c.fillText('Lintasan Waktu Salat', W / 2, 1306);
+c.fillText('Perkiraan waktu, ikuti ketetapan Kemenag setempat', W / 2, 1238);
+c.fillText('Lintasan Waktu Salat', W / 2, 1276);
+
+// Penambahan Teks Paling Bawah saat di-share / disimpan
+c.fillStyle = '#e3c070'; c.font = '600 24px Inter, system-ui, sans-serif';
+c.fillText('Aplikasi Jadwal Solat by @novan', W / 2, 1314);
 }
 
 function renderPilihan() {
