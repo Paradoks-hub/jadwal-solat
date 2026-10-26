@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Al-Kahf 1–10 &amp; Surah Pendek dengan Tajwid dan Latin</title>
+<meta name="description" content="Sepuluh ayat pertama Surah Al-Kahf dengan tanda tajwid berwarna, plus surah pendek (Al-Ikhlas, Al-Falaq, An-Nas, dan lainnya) dengan Latin dan arti.">
+<link rel="canonical" href="https://paradoks-hub.github.io/jadwal-solat/quran.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0f4a45">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="id_ID">
+<meta property="og:site_name" content="Jadwal Solat">
+<meta property="og:title" content="Al-Kahf 1–10 &amp; Surah Pendek dengan Tajwid dan Latin">
+<meta property="og:description" content="Sepuluh ayat pertama Surah Al-Kahf dengan tanda tajwid berwarna, plus surah pendek (Al-Ikhlas, Al-Falaq, An-Nas, dan lainnya) dengan Latin dan arti.">
+<meta property="og:url" content="https://paradoks-hub.github.io/jadwal-solat/quran.html">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="tajwid.css">
+<style>
+    :root {
+        --ink: #16232a;
+        --muted: #64777d;
+        --bg: #e9eeec;
+        --card: #ffffff;
+        --teal: #0e5f5a;
+        --teal-dark: #0a3d3f;
+        --gold: #b8862e;
+        --gold-light: #e2b45c;
+        --line: #dfe6e4;
+        --ring: rgba(184, 134, 46, 0.35);
+
+        /* sky states, swapped by JS as the day progresses */
+        --sky-a: #dce9e6;
+        --sky-b: #eef4ee;
+        --sky-dot: rgba(14, 95, 90, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        margin: 0;
+        padding: 28px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .card {
+        max-width: 460px;
+        width: 100%;
+        background: var(--card);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -20px rgba(14, 62, 60, 0.35), 0 2px 8px rgba(14,62,60,0.06);
+        border: 1px solid var(--line);
+    }
+
+    /* geometric motif strip — nod to Islamic tilework, kept quiet */
+    .motif {
+        height: 6px;
+        background: repeating-linear-gradient(
+            135deg,
+            var(--teal) 0px, var(--teal) 6px,
+            var(--gold) 6px, var(--gold) 12px,
+            transparent 12px, transparent 18px
+        );
+        opacity: 0.85;
+    }
+
+    header {
+        padding: 26px 26px 6px;
+        text-align: center;
+    }
+
+    .eyebrow {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 700;
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-family: 'Amiri', serif;
+        font-weight: 700;
+        font-size: 27px;
+        color: var(--teal-dark);
+        letter-spacing: 0.01em;
+    }
+
+    .meta {
+        margin: 2px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
+    /* --- signature element: the sun's daily arc, dawn to dusk --- */
+    .arc-wrap {
+        position: relative;
+        margin: 22px 14px 8px;
+        aspect-ratio: 300 / 132;
+    }
+
+    /* background layer only — clipped to rounded corners */
+    .arc-sky {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+        background-image:
+            radial-gradient(circle, var(--sky-dot) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+        transition: background 0.8s ease;
+        overflow: hidden;
+    }
+
+    .arc-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* markers live outside the clipped layer so labels never get cut off */
+    .arc-markers, .arc-now { position: absolute; inset: 0; }
+
+    .arc-svg path {
+        fill: none;
+        stroke: rgba(14, 62, 60, 0.28);
+        stroke-width: 1.4;
+        stroke-dasharray: 1 6;
+        stroke-linecap: round;
+    }
+
+    .arc-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .arc-marker .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 3px rgba(14, 95, 90, 0.12);
+    }
+
+    .arc-marker.aktif .dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .arc-marker .label {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .arc-marker.aktif .label { color: var(--gold); }
+
+    .arc-now {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px 2px rgba(184, 134, 46, 0.55);
+        transform: translate(-50%, -50%);
+        transition: left 1s linear, top 1s linear;
+    }
+
+    .countdown-box {
+        margin: 18px 20px 0;
+        background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+        color: white;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .countdown-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    .countdown-timer {
+        font-size: 38px;
+        font-weight: 800;
+        margin: 6px 0 0;
+        font-variant-numeric: tabular-nums;
+        color: var(--gold-light);
+        letter-spacing: 0.02em;
+    }
+
+    .jadwal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 20px 20px 24px;
+    }
+
+    .jadwal-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f4f7f6;
+        border-radius: 10px;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .jadwal-item .nama {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 14.5px;
+    }
+
+    .jadwal-item .nama svg { flex-shrink: 0; }
+
+    .jadwal-item.aktif {
+        background: #fbf3e4;
+        border-left-color: var(--gold);
+    }
+
+    .jadwal-item.aktif .nama { color: var(--teal-dark); }
+
+    .waktu {
+        font-size: 16.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--teal-dark);
+    }
+
+    .jadwal-item.aktif .waktu { color: var(--gold); }
+
+    .arc-now.malam {
+background: #cfd8e6;
+box-shadow: 0 0 10px 2px rgba(120, 140, 180, 0.5);
+}
+.hari-besar { padding: 0 20px 24px; }
+.hari-besar h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.hb-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: #f4f7f6; border-radius: 10px; margin-bottom: 8px; }
+.hb-nama { font-weight: 600; font-size: 14px; color: var(--teal-dark); }
+.hb-tgl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hb-sisa { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.hb-catatan { margin: 6px 2px 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.doa { padding: 0 0 24px; }
+.doa h2, .haid h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--teal-dark); }
+.doa h2 { padding: 0 20px; }
+.doa-track { display: flex; align-items: flex-start; overflow-y: hidden; transition: height 0.3s ease; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 20px; padding: 0 20px; scrollbar-width: none; }
+.doa-track::-webkit-scrollbar { display: none; }
+.doa-slide { flex: 0 0 100%; box-sizing: border-box; scroll-snap-align: start; padding: 16px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.doa-slide.menahan { background: #fbf3e4; border-top-color: var(--gold); }
+.doa-slide.sabar { background: #e8f1ee; border-top-color: #4d8f7a; }
+.doa-slide.sadar { background: #eceff6; border-top-color: #5b6b8c; }
+.doa-kat { margin: 0; font-size: 12px; font-weight: 700; color: var(--gold); }
+.doa-judul { margin: 2px 0 12px; font-size: 15px; font-weight: 700; color: var(--teal-dark); }
+.doa-arab { font-family: 'Amiri', serif; font-size: 25px; line-height: 2; direction: rtl; text-align: right; }
+.doa-latin { margin: 10px 0 6px; font-size: 13px; font-style: italic; line-height: 1.5; color: var(--muted); }
+.doa-arti { margin: 0; font-size: 13.5px; line-height: 1.6; }
+.doa-renungan { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: var(--teal-dark); }
+.doa-sumber { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.doa-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.doa-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--line); transition: all 0.3s ease; }
+.doa-dots span.on { width: 16px; background: var(--gold); }
+.haid { padding: 0 20px 24px; }
+.haid-box { background: #f4f7f6; border-radius: 14px; padding: 16px; }
+.haid-status { margin: 0 0 4px; font-weight: 700; color: var(--teal-dark); }
+.haid-info { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.haid-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.haid-btn { font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px 14px; border: 0; border-radius: 10px; background: var(--teal); color: #fff; cursor: pointer; }
+.haid-btn.alt { background: #fff; color: var(--teal-dark); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) {
+        .arc-now { transition: none; }
+    }
+
+.doa-menu { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px; scrollbar-width: none; }
+.doa-menu::-webkit-scrollbar { display: none; }
+.doa-chip { flex: 0 0 auto; font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--teal-dark); white-space: nowrap; cursor: pointer; }
+.doa-chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.doa-kembali { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+.gerak { display: block; width: 100%; height: auto; max-height: 150px; margin: 0 0 4px; }
+.gerak .lantai { stroke: var(--line); stroke-width: 2; }
+.gerak polyline { fill: none; stroke: var(--teal-dark); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.gerak .kepala { fill: var(--teal); }
+.gerak .tetes { fill: #5ba9c4; opacity: 0; animation: jatuh 1.3s linear infinite; }
+@keyframes jatuh { 0% { transform: translateY(-8px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(78px); opacity: 0; } }
+.gerak-label { min-height: 18px; margin: 0 0 10px; font-size: 12px; font-weight: 600; text-align: center; color: var(--gold); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul { margin: 6px 0; padding-left: 18px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+
+
+html { scroll-behavior: smooth; }
+a.doa-chip { text-decoration: none; }
+.isi { padding: 0 20px 24px; }
+.isi h2 { margin: 22px 0 8px; font-size: 16px; color: var(--teal-dark); scroll-margin-top: 12px; }
+.isi h3 { margin: 14px 0 4px; font-size: 14px; color: var(--teal-dark); }
+.isi p, .isi li { font-size: 13.5px; line-height: 1.65; }
+.isi p { margin: 6px 0; }
+.isi ul, .isi ol { margin: 6px 0; padding-left: 20px; }
+.tabel-bungkus { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; }
+.isi table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+.isi th, .isi td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.isi th { background: #eaf3f1; color: var(--teal-dark); font-size: 12px; }
+.isi tr:last-child td { border-bottom: 0; }
+.catatan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #fbf3e4; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.kotak { margin: 10px 0; padding: 14px; border-radius: 14px; background: #eaf3f1; border-top: 3px solid var(--teal); }
+.arab { font-family: 'Amiri', serif; font-size: 23px; line-height: 2; direction: rtl; text-align: right; margin: 6px 0 0; }
+.latin { margin: 4px 0; font-size: 12.5px; font-style: italic; line-height: 1.5; color: var(--muted); }
+
+
+.ayat { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.ayat:last-child { border-bottom: 0; }
+.arab b { font-weight: 400; }
+.no { font-size: 18px; color: var(--gold); }
+.t-mad { color: #d64545; }
+.t-idgham { color: #2f6fdb; }
+.t-ikhfa { color: #e08a1e; }
+.t-ghunnah { color: #1f9d55; }
+.t-qalqalah { color: #0f8b8d; }
+.tj { margin: 6px 0 0; padding: 0; list-style: none; }
+.tj li { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; font-size: 12.5px; line-height: 1.55; }
+.dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; transform: translateY(1px); }
+.dot.t-mad { background: #d64545; }
+.dot.t-idgham { background: #2f6fdb; }
+.dot.t-ikhfa { background: #e08a1e; }
+.dot.t-ghunnah { background: #1f9d55; }
+.dot.t-qalqalah { background: #0f8b8d; }
+.ar-kecil { font-family: 'Amiri', serif; font-size: 17px; }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0; font-size: 12.5px; }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.isi h2 small { font-size: 12px; font-weight: 500; color: var(--muted); }
+
+</style>
+</head>
+<body>
+<div class="card">
+<div class="motif"></div>
+<header>
+<p class="eyebrow">Belajar Al-Qur'an</p>
+<h1>Al-Kahf &amp; Surah Pendek</h1>
+<p class="meta">Dengan tanda tajwid, Latin, dan arti</p>
+<a class="doa-kembali" href="index.html">‹ Kembali ke jadwal</a>
+</header>
+<nav class="doa-menu" id="menu" aria-label="Menu pintas"></nav>
+<main class="isi" id="isi">
+<h2 id="tajwid">Dasar tajwid singkat</h2>
+<div class="legenda"><span><i class="dot" style="background:#1f9d55"></i>Ghunnah</span><span><i class="dot" style="background:#0f8b8d"></i>Idgham bighunnah</span><span><i class="dot" style="background:#2f6fdb"></i>Idgham bilaghunnah</span><span><i class="dot" style="background:#5b5fc7"></i>Idgham mutamatsilain/mimi</span><span><i class="dot" style="background:#e08a1e"></i>Ikhfa</span><span><i class="dot" style="background:#8e44ad"></i>Iqlab</span><span><i class="dot" style="background:#e57373"></i>Mad 2 harakat</span><span><i class="dot" style="background:#d64545"></i>Mad 2–5 harakat</span><span><i class="dot" style="background:#a31515"></i>Mad lazim 6 harakat</span><span><i class="dot" style="background:#d6336c"></i>Qalqalah</span></div>
+<p class="catatan">Ketuk bagian yang berwarna untuk melihat nama hukum dan cara bacanya. Pewarnaan dibuat otomatis oleh mesin tajwid terbuka (@quran.ws/tajwid, kode MIT, aturan CC BY 4.0) pada teks Arab di halaman ini, jadi bisa meleset di kasus tertentu. Patokan akhir tetap guru mengaji.</p>
+<div class="tabel-bungkus"><table>
+<tr><th>Hukum</th><th>Cara baca</th></tr>
+<tr><td>Izhar</td><td>Nun sukun atau tanwin bertemu huruf tenggorokan (ء ه ع ح غ خ): dibaca jelas, tanpa dengung.</td></tr>
+<tr><td>Idgham</td><td>Bertemu huruf ي ن م و (bighunnah, dengan dengung) atau ل ر (bilaghunnah, tanpa dengung): bunyi nun melebur ke huruf berikutnya.</td></tr>
+<tr><td>Iqlab</td><td>Bertemu huruf ب: nun berubah menjadi bunyi mim yang samar, dengung 2 harakat.</td></tr>
+<tr><td>Ikhfa</td><td>Bertemu 15 huruf lainnya: nun disamarkan antara nun dan huruf berikutnya, dengung 2 harakat.</td></tr>
+<tr><td>Mad thabi'i</td><td>Huruf mad (alif, waw, ya) tanpa sebab lain: dibaca 2 harakat.</td></tr>
+<tr><td>Mad wajib muttasil</td><td>Huruf mad bertemu hamzah dalam satu kata: 4–5 harakat.</td></tr>
+<tr><td>Mad jaiz munfasil</td><td>Huruf mad bertemu hamzah di kata berikutnya: 2–5 harakat.</td></tr>
+<tr><td>Mad 'iwadh</td><td>Tanwin fathah di akhir ayat saat waqaf: dibaca seperti alif panjang 2 harakat.</td></tr>
+<tr><td>Qalqalah</td><td>Huruf ق ط ب ج د yang sukun atau diwaqafkan: dipantulkan ringan (qalqalah sughra) atau lebih kuat saat waqaf (kubra).</td></tr>
+<tr><td>Ghunnah</td><td>Nun dan mim bertasydid: dengung 2 harakat.</td></tr>
+</table></div>
+<p class="catatan">Tulisan Latin hanya alat bantu. Tanda ' mewakili ain atau hamzah, "kh" untuk خ, "dz" untuk ذ, "sy" untuk ش, "ts" untuk ث, "gh" untuk غ. Untuk bacaan yang benar, belajarlah langsung kepada guru mengaji. </p>
+</main>
+</div>
+<script>
+const AR = (n) => String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+const ayatHTML = (a, i) => `<div class="ayat"><div class="arab" lang="ar">${a[0]} <span class="no">﴿${AR(i + 1)}﴾</span></div><p class="latin">${a[1]}</p><p>${a[2]}</p>${a[3] || ''}</div>`;
+
+const KAHF = [["ٱلۡحَمۡدُ لِلَّهِ ٱلَّ<span class=\"tj-mt\" data-r=\"mt\">ذِيٓ</span> أَ<span class=\"tj-ik\" data-r=\"ik\">نزَ</span>لَ عَ<span class=\"tj-mt\" data-r=\"mt\">لَىٰ</span> عَ<span class=\"tj-qs\" data-r=\"qs\">بۡدِ</span>هِ ٱلۡكِ<span class=\"tj-mt\" data-r=\"mt\">تَٰ</span>بَ وَلَمۡ يَ<span class=\"tj-qs\" data-r=\"qs\">جۡعَ</span><span class=\"tj-im\" data-r=\"im\">ل لَّ</span><span class=\"tj-ms\" data-r=\"ms\">هُۥ</span> عِوَ<span class=\"tj-mt\" data-r=\"mt\">جَاۜ</span>", "Alhamdu lillahilladzi anzala 'ala 'abdihil kitaba wa lam yaj'al lahu 'iwaja (saktah)", "Segala puji bagi Allah yang telah menurunkan Kitab (Al-Qur'an) kepada hamba-Nya, dan Dia tidak menjadikannya bengkok sedikit pun,", "<details class=\"tjd\"><summary>Catatan tajwid (4)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَنزَلَ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">عَبۡدِهِ</span> Qalqalah sughra</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يَجۡعَل</span> Qalqalah sughra</span></li><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يَجۡعَل لَّهُۥ</span> Idgham mutamatsilain / mimi</span></li></ul></details>"], ["قَيِّمٗ<span class=\"tj-il\" data-r=\"il\">ا لِّ</span>يُ<span class=\"tj-ik\" data-r=\"ik\">نذِ</span>رَ بَأۡسٗ<span class=\"tj-ik\" data-r=\"ik\">ا شَ</span><span class=\"tj-mt\" data-r=\"mt\">دِي</span>دٗ<span class=\"tj-ib\" data-r=\"ib\">ا </span><span class=\"tj-gh\" data-r=\"gh\">مِّ</span><span class=\"tj-il\" data-r=\"il\">ن لَّ</span>دُنۡهُ وَيُبَشِّرَ ٱلۡمُؤۡمِ<span class=\"tj-mt\" data-r=\"mt\">نِي</span>نَ ٱلَّ<span class=\"tj-mt\" data-r=\"mt\">ذِي</span>نَ يَعۡمَ<span class=\"tj-mt\" data-r=\"mt\">لُو</span>نَ ٱل<span class=\"tj-mt\" data-r=\"mt\">صَّـٰ</span>لِ<span class=\"tj-mt\" data-r=\"mt\">حَٰ</span>تِ أَ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span> لَهُمۡ أَ<span class=\"tj-qs\" data-r=\"qs\">جۡرً</span><span class=\"tj-mi\" data-r=\"mi\">ا</span> حَسَنٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Qayyimal liyundzira ba'san syadidam min ladunhu wa yubasysyiral mu'minin ladzina ya'malunash shalihati anna lahum ajran hasana", "(sebagai bimbingan) yang lurus, untuk memperingatkan akan siksa yang sangat pedih dari sisi-Nya, dan memberi kabar gembira kepada orang-orang mukmin yang mengerjakan kebajikan bahwa mereka akan mendapat balasan yang baik,", "<details class=\"tjd\"><summary>Catatan tajwid (8)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#2f6fdb\"></i><span><span class=\"ar-kecil\" lang=\"ar\">قَيِّمٗا لِّيُنذِرَ</span> Idgham bilaghunnah</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لِّيُنذِرَ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">بَأۡسٗا شَدِيدٗا</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">شَدِيدٗا مِّن</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِّن</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#2f6fdb\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِّن لَّدُنۡهُ</span> Idgham bilaghunnah</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَنَّ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَجۡرًا</span> Qalqalah sughra</span></li></ul></details>"], ["<span class=\"tj-gh\" data-r=\"gh\">مَّـٰ</span>كِ<span class=\"tj-mt\" data-r=\"mt\">ثِي</span>نَ <span class=\"tj-mt\" data-r=\"mt\">فِي</span>هِ أَبَدٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Makitsina fihi abada", "mereka kekal di dalamnya untuk selama-lamanya.", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مَّـٰكِثِينَ</span> Ghunnah (dengung)</span></li></ul></details>"], ["وَيُ<span class=\"tj-ik\" data-r=\"ik\">نذِ</span>رَ ٱلَّ<span class=\"tj-mt\" data-r=\"mt\">ذِي</span>نَ <span class=\"tj-mt\" data-r=\"mt\">قَالُو</span>اْ ٱتَّخَذَ ٱ<span class=\"tj-im\" data-r=\"im\">للَّ</span>هُ وَلَدٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Wa yundziral ladzina qalut takhadzallahu waladan", "Dan untuk memperingatkan orang-orang yang berkata, “Allah mengambil seorang anak.”", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَيُنذِرَ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱللَّهُ</span> Idgham mutamatsilain / mimi</span></li></ul></details>"], ["<span class=\"tj-gh\" data-r=\"gh\">مَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span> لَهُ<span class=\"tj-iks\" data-r=\"iks\">م بِ</span><span class=\"tj-ms\" data-r=\"ms\">هِۦ</span> مِنۡ عِلۡ<span class=\"tj-ib\" data-r=\"ib\">مٖ وَ</span><span class=\"tj-mt\" data-r=\"mt\">لَا</span> لِ<span class=\"tj-mb\" data-r=\"mb\">أٓ</span><span class=\"tj-mc\" data-r=\"mc\">بَآئِ</span>هِمۡۚ كَبُرَتۡ كَلِمَ<span class=\"tj-ik\" data-r=\"ik\">ةٗ تَ</span>خۡرُجُ مِنۡ أَفۡ<span class=\"tj-mt\" data-r=\"mt\">وَٰ</span>هِهِمۡۚ إِ<span class=\"tj-ib\" data-r=\"ib\">ن يَ</span><span class=\"tj-mt\" data-r=\"mt\">قُولُو</span>نَ إِ<span class=\"tj-mt\" data-r=\"mt\">لَّا</span> كَذِبٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Ma lahum bihi min 'ilmiw wa la liaba'ihim, kaburat kalimatan takhruju min afwahihim, iy yaquluna illa kadziba", "Mereka sama sekali tidak mempunyai pengetahuan tentang itu, begitu pula nenek moyang mereka. Alangkah besar kata-kata yang keluar dari mulut mereka; yang mereka ucapkan tidak lain hanyalah dusta.", "<details class=\"tjd\"><summary>Catatan tajwid (6)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مَّا</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لَهُم بِهِۦ</span> Ikhfa syafawi</span></li><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">عِلۡمٖ وَلَا</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#d64545\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لِأٓبَآئِهِمۡۚ</span> Mad wajib muttasil</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">كَلِمَةٗ تَخۡرُجُ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِن يَقُولُونَ</span> Idgham bighunnah</span></li></ul></details>"], ["فَلَعَلَّكَ <span class=\"tj-mt\" data-r=\"mt\">بَٰ</span>خِ<span class=\"tj-im\" data-r=\"im\">عٞ </span><span class=\"tj-gh\" data-r=\"gh\">نَّ</span>فۡسَكَ عَ<span class=\"tj-mt\" data-r=\"mt\">لَىٰٓ</span> <span class=\"tj-mb\" data-r=\"mb\">ءَا</span><span class=\"tj-mt\" data-r=\"mt\">ثَٰ</span>رِهِمۡ إِ<span class=\"tj-il\" data-r=\"il\">ن لَّ</span>مۡ يُؤۡمِ<span class=\"tj-mt\" data-r=\"mt\">نُو</span>اْ بِ<span class=\"tj-mt\" data-r=\"mt\">هَٰذَا</span> ٱلۡحَ<span class=\"tj-mt\" data-r=\"mt\">دِي</span>ثِ أَسَفً<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Fala'allaka bakhi'un nafsaka 'ala atsarihim il lam yu'minu bihadzal haditsi asafa", "Maka barangkali engkau (Muhammad) akan membinasakan dirimu karena bersedih hati setelah mereka berpaling, sekiranya mereka tidak beriman kepada keterangan ini (Al-Qur'an).", "<details class=\"tjd\"><summary>Catatan tajwid (4)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">بَٰخِعٞ نَّفۡسَكَ</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">بَٰخِعٞ نَّفۡسَكَ</span> Idgham mutamatsilain / mimi</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">نَّفۡسَكَ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#2f6fdb\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِن لَّمۡ</span> Idgham bilaghunnah</span></li></ul></details>"], ["إِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span> جَعَلۡ<span class=\"tj-mt\" data-r=\"mt\">نَا</span> <span class=\"tj-mt\" data-r=\"mt\">مَا</span> عَ<span class=\"tj-mt\" data-r=\"mt\">لَى</span> ٱلۡأَرۡضِ <span class=\"tj-mt\" data-r=\"mt\">زِي</span>نَ<span class=\"tj-il\" data-r=\"il\">ةٗ لَّ</span><span class=\"tj-mt\" data-r=\"mt\">هَا</span> لِنَ<span class=\"tj-qs\" data-r=\"qs\">بۡلُ</span>وَهُمۡ أَيُّهُمۡ أَحۡسَنُ عَمَلٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Inna ja'alna ma 'alal ardhi zinatal laha linabluwahum ayyuhum ahsanu 'amala", "Sungguh, Kami telah menjadikan apa yang ada di bumi sebagai perhiasan baginya, untuk Kami uji mereka, siapakah di antaranya yang terbaik perbuatannya.", "<details class=\"tjd\"><summary>Catatan tajwid (3)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِنَّا</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#2f6fdb\"></i><span><span class=\"ar-kecil\" lang=\"ar\">زِينَةٗ لَّهَا</span> Idgham bilaghunnah</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لِنَبۡلُوَهُمۡ</span> Qalqalah sughra</span></li></ul></details>"], ["وَإِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span> لَ<span class=\"tj-mt\" data-r=\"mt\">جَٰ</span>عِ<span class=\"tj-mt\" data-r=\"mt\">لُو</span>نَ <span class=\"tj-mt\" data-r=\"mt\">مَا</span> عَلَيۡ<span class=\"tj-mt\" data-r=\"mt\">هَا</span> صَ<span class=\"tj-mt\" data-r=\"mt\">عِي</span>دٗ<span class=\"tj-ik\" data-r=\"ik\">ا جُ</span>رُزً<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Wa inna lajaa'iluna ma 'alaiha sha'idan juruza", "Dan Kami pasti akan menjadikan (pula) apa yang di atasnya menjadi tanah yang tandus lagi gersang.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَإِنَّا</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">صَعِيدٗا جُرُزًا</span> Ikhfa haqiqi</span></li></ul></details>"], ["أَمۡ حَسِ<span class=\"tj-qs\" data-r=\"qs\">بۡتَ</span> أَ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span> أَصۡ<span class=\"tj-mt\" data-r=\"mt\">حَٰ</span>بَ ٱلۡكَهۡفِ وَٱلرَّ<span class=\"tj-mt\" data-r=\"mt\">قِي</span>مِ <span class=\"tj-mt\" data-r=\"mt\">كَانُو</span>اْ مِنۡ <span class=\"tj-mb\" data-r=\"mb\">ءَا</span><span class=\"tj-mt\" data-r=\"mt\">يَٰ</span>تِ<span class=\"tj-mt\" data-r=\"mt\">نَا</span> عَجَبً<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Am hasibta anna ashhabal kahfi war raqimi kanu min ayatina 'ajaba", "Apakah engkau mengira bahwa orang-orang yang mendiami gua dan (yang bernama) Ar-Raqim itu, termasuk tanda-tanda (kebesaran) Kami yang menakjubkan?", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">حَسِبۡتَ</span> Qalqalah sughra</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَنَّ</span> Ghunnah (dengung)</span></li></ul></details>"], ["إِذۡ أَ<span class=\"tj-mt\" data-r=\"mt\">وَى</span> ٱلۡفِتۡيَةُ إِ<span class=\"tj-mt\" data-r=\"mt\">لَى</span> ٱلۡكَهۡفِ فَ<span class=\"tj-mt\" data-r=\"mt\">قَالُو</span>اْ رَبَّ<span class=\"tj-mt\" data-r=\"mt\">نَآ</span> <span class=\"tj-mb\" data-r=\"mb\">ءَا</span>تِ<span class=\"tj-mt\" data-r=\"mt\">نَا</span> مِ<span class=\"tj-il\" data-r=\"il\">ن لَّ</span>دُ<span class=\"tj-ik\" data-r=\"ik\">نكَ</span> رَحۡمَ<span class=\"tj-ib\" data-r=\"ib\">ةٗ وَ</span>هَيِّئۡ لَ<span class=\"tj-mt\" data-r=\"mt\">نَا</span> مِنۡ أَمۡرِ<span class=\"tj-mt\" data-r=\"mt\">نَا</span> رَشَدٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Idz awal fityatu ilal kahfi faqalu rabbana atina mil ladunka rahmataw wa hayyi' lana min amrina rasyada", "(Ingatlah) ketika pemuda-pemuda itu berlindung ke dalam gua lalu mereka berdoa, “Ya Tuhan kami, berikanlah kepada kami rahmat dari sisi-Mu dan sempurnakanlah bagi kami petunjuk yang lurus dalam urusan kami (ini).”", "<details class=\"tjd\"><summary>Catatan tajwid (3)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#2f6fdb\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِن لَّدُنكَ</span> Idgham bilaghunnah</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لَّدُنكَ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">رَحۡمَةٗ وَهَيِّئۡ</span> Idgham bighunnah</span></li></ul></details>"]];
+
+const SURAH = [["asr", "Al-'Asr", "Masa", [["وَٱلۡعَصۡرِ", "Wal 'ashr", "Demi masa.", ""], ["إِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span> ٱلۡإِ<span class=\"tj-ik\" data-r=\"ik\">نسَٰ</span>نَ لَ<span class=\"tj-mt\" data-r=\"mt\">فِي</span> خُسۡرٍ", "Innal insana lafi khusr", "Sungguh, manusia berada dalam kerugian,", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِنَّ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡإِنسَٰنَ</span> Ikhfa haqiqi</span></li></ul></details>"], ["إِ<span class=\"tj-mt\" data-r=\"mt\">لَّا</span> ٱلَّ<span class=\"tj-mt\" data-r=\"mt\">ذِي</span>نَ <span class=\"tj-mb\" data-r=\"mb\">ءَا</span>مَ<span class=\"tj-mt\" data-r=\"mt\">نُو</span>اْ وَعَمِ<span class=\"tj-mt\" data-r=\"mt\">لُو</span>اْ ٱل<span class=\"tj-mt\" data-r=\"mt\">صَّـٰ</span>لِ<span class=\"tj-mt\" data-r=\"mt\">حَٰ</span>تِ وَتَ<span class=\"tj-mt\" data-r=\"mt\">وَا</span>صَوۡاْ بِٱلۡحَقِّ وَتَ<span class=\"tj-mt\" data-r=\"mt\">وَا</span>صَوۡاْ بِٱلصَّ<span class=\"tj-qs\" data-r=\"qs\">بۡرِ</span>", "Illal ladzina amanu wa 'amilush shalihati wa tawashau bil haqqi wa tawashau bish shabr", "kecuali orang-orang yang beriman dan mengerjakan kebajikan serta saling menasihati untuk kebenaran dan saling menasihati untuk kesabaran.", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">بِٱلصَّبۡرِ</span> Qalqalah sughra</span></li></ul></details>"]]], ["kautsar", "Al-Kautsar", "Nikmat yang banyak", [["إِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mf\" data-r=\"mf\">آ أَ</span>عۡطَيۡ<span class=\"tj-mt\" data-r=\"mt\">نَٰ</span>كَ ٱلۡكَوۡثَرَ", "Inna a'thainakal kautsar", "Sungguh, Kami telah memberimu (Muhammad) nikmat yang banyak.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِنَّآ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d64545\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِنَّآ أَعۡطَيۡنَٰكَ</span> Mad jaiz munfasil</span></li></ul></details>"], ["فَصَلِّ لِرَبِّكَ وَٱنۡحَرۡ", "Fashalli lirabbika wanhar", "Maka laksanakanlah salat karena Tuhanmu, dan berkurbanlah.", ""], ["إِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span> <span class=\"tj-mt\" data-r=\"mt\">شَا</span>نِئَكَ هُوَ ٱلۡأَ<span class=\"tj-qs\" data-r=\"qs\">بۡتَ</span>رُ", "Inna syani'aka huwal abtar", "Sungguh, orang-orang yang membencimu, dialah yang terputus.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِنَّ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡأَبۡتَرُ</span> Qalqalah sughra</span></li></ul></details>"]]], ["kafirun", "Al-Kafirun", "Orang-orang kafir", [["قُلۡ <span class=\"tj-mc\" data-r=\"mc\">يَـٰٓأَ</span>يُّ<span class=\"tj-mt\" data-r=\"mt\">هَا</span> ٱلۡ<span class=\"tj-mt\" data-r=\"mt\">كَٰ</span>فِ<span class=\"tj-mt\" data-r=\"mt\">رُو</span>نَ", "Qul ya ayyuhal kafirun", "Katakanlah (Muhammad), “Wahai orang-orang kafir!", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d64545\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يَـٰٓأَيُّهَا</span> Mad wajib muttasil</span></li></ul></details>"], ["<span class=\"tj-mt\" data-r=\"mt\">لَآ</span> أَعۡبُدُ <span class=\"tj-mt\" data-r=\"mt\">مَا</span> تَعۡبُ<span class=\"tj-mt\" data-r=\"mt\">دُو</span>نَ", "La a'budu ma ta'budun", "Aku tidak akan menyembah apa yang kamu sembah,", ""], ["وَ<span class=\"tj-mt\" data-r=\"mt\">لَآ</span> أَ<span class=\"tj-ik\" data-r=\"ik\">نتُ</span>مۡ <span class=\"tj-mt\" data-r=\"mt\">عَٰ</span>بِ<span class=\"tj-mt\" data-r=\"mt\">دُو</span>نَ <span class=\"tj-mt\" data-r=\"mt\">مَآ</span> أَعۡبُ<span class=\"tj-qk\" data-r=\"qk\">دُ</span>", "Wa la antum 'abiduna ma a'bud", "dan kamu bukan penyembah apa yang aku sembah.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَنتُمۡ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَعۡبُدُ</span> Qalqalah kubra</span></li></ul></details>"], ["وَ<span class=\"tj-mt\" data-r=\"mt\">لَآ</span> أَ<span class=\"tj-mt\" data-r=\"mt\">نَا۠</span> <span class=\"tj-mt\" data-r=\"mt\">عَا</span>بِ<span class=\"tj-ib\" data-r=\"ib\">دٞ </span><span class=\"tj-gh\" data-r=\"gh\">مَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span> عَبَ<span class=\"tj-im\" data-r=\"im\">دتُّ</span>مۡ", "Wa la ana 'abidum ma 'abattum", "Dan aku tidak pernah menjadi penyembah apa yang kamu sembah,", "<details class=\"tjd\"><summary>Catatan tajwid (3)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">عَابِدٞ مَّا</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مَّا</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">عَبَدتُّمۡ</span> Idgham mutamatsilain / mimi</span></li></ul></details>"], ["وَ<span class=\"tj-mt\" data-r=\"mt\">لَآ</span> أَ<span class=\"tj-ik\" data-r=\"ik\">نتُ</span>مۡ <span class=\"tj-mt\" data-r=\"mt\">عَٰ</span>بِ<span class=\"tj-mt\" data-r=\"mt\">دُو</span>نَ <span class=\"tj-mt\" data-r=\"mt\">مَآ</span> أَعۡبُ<span class=\"tj-qk\" data-r=\"qk\">دُ</span>", "Wa la antum 'abiduna ma a'bud", "dan kamu tidak pernah (pula) menjadi penyembah apa yang aku sembah.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَنتُمۡ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَعۡبُدُ</span> Qalqalah kubra</span></li></ul></details>"], ["لَكُمۡ <span class=\"tj-mt\" data-r=\"mt\">دِي</span>نُكُمۡ وَلِيَ <span class=\"tj-mt\" data-r=\"mt\">دِي</span>نِ", "Lakum dinukum wa liya din", "Untukmu agamamu, dan untukku agamaku.”", ""]]], ["nasr", "An-Nasr", "Pertolongan", [["إِ<span class=\"tj-mt\" data-r=\"mt\">ذَا</span> <span class=\"tj-mc\" data-r=\"mc\">جَآءَ</span> نَصۡرُ ٱ<span class=\"tj-im\" data-r=\"im\">للَّ</span>هِ وَٱلۡفَتۡحُ", "Idza ja'a nashrullahi wal fath", "Apabila telah datang pertolongan Allah dan kemenangan,", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d64545\"></i><span><span class=\"ar-kecil\" lang=\"ar\">جَآءَ</span> Mad wajib muttasil</span></li><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱللَّهِ</span> Idgham mutamatsilain / mimi</span></li></ul></details>"], ["وَرَأَيۡتَ ٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سَ يَ<span class=\"tj-qs\" data-r=\"qs\">دۡخُ</span><span class=\"tj-mt\" data-r=\"mt\">لُو</span>نَ <span class=\"tj-mt\" data-r=\"mt\">فِي</span> <span class=\"tj-mt\" data-r=\"mt\">دِي</span>نِ ٱ<span class=\"tj-im\" data-r=\"im\">للَّ</span>هِ أَفۡ<span class=\"tj-mt\" data-r=\"mt\">وَا</span>جٗ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Wa ra'aitan nasa yadkhuluna fi dinillahi afwaja", "dan engkau melihat manusia berbondong-bondong masuk agama Allah,", "<details class=\"tjd\"><summary>Catatan tajwid (3)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلنَّاسَ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يَدۡخُلُونَ</span> Qalqalah sughra</span></li><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱللَّهِ</span> Idgham mutamatsilain / mimi</span></li></ul></details>"], ["فَسَبِّحۡ بِحَمۡدِ رَبِّكَ وَٱسۡتَغۡفِرۡهُۚ إِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-ms\" data-r=\"ms\">هُۥ</span> <span class=\"tj-mt\" data-r=\"mt\">كَا</span>نَ تَ<span class=\"tj-mt\" data-r=\"mt\">وَّا</span>بَۢ<span class=\"tj-mi\" data-r=\"mi\">ا</span>", "Fasabbih bihamdi rabbika wastaghfirh, innahu kana tawwaba", "maka bertasbihlah dengan memuji Tuhanmu dan mohonlah ampunan kepada-Nya. Sungguh, Dia Maha Penerima tobat.", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">إِنَّهُۥ</span> Ghunnah (dengung)</span></li></ul></details>"]]], ["lahab", "Al-Lahab", "Gejolak api", [["تَبَّتۡ يَ<span class=\"tj-mt\" data-r=\"mt\">دَآ</span> أَ<span class=\"tj-mt\" data-r=\"mt\">بِي</span> لَهَ<span class=\"tj-ib\" data-r=\"ib\">بٖ وَ</span>تَ<span class=\"tj-qk\" data-r=\"qk\">بَّ</span>", "Tabbat yada abi lahabiw wa tabb", "Binasalah kedua tangan Abu Lahab dan benar-benar binasa dia!", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لَهَبٖ وَتَبَّ</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَتَبَّ</span> Qalqalah kubra</span></li></ul></details>"], ["<span class=\"tj-mt\" data-r=\"mt\">مَآ</span> أَغۡ<span class=\"tj-mt\" data-r=\"mt\">نَىٰ</span> عَنۡهُ <span class=\"tj-mt\" data-r=\"mt\">مَا</span>لُ<span class=\"tj-ms\" data-r=\"ms\">هُۥ</span> وَ<span class=\"tj-mt\" data-r=\"mt\">مَا</span> كَسَ<span class=\"tj-qk\" data-r=\"qk\">بَ</span>", "Ma aghna 'anhu maluhu wa ma kasab", "Tidaklah berguna baginya hartanya dan apa yang dia usahakan.", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">كَسَبَ</span> Qalqalah kubra</span></li></ul></details>"], ["سَيَصۡ<span class=\"tj-mt\" data-r=\"mt\">لَىٰ</span> <span class=\"tj-mt\" data-r=\"mt\">نَا</span>رٗ<span class=\"tj-ik\" data-r=\"ik\">ا ذَ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>تَ لَهَ<span class=\"tj-qk\" data-r=\"qk\">بٖ</span>", "Sayashla naran dzata lahab", "Kelak dia akan masuk ke dalam api yang bergejolak,", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">نَارٗا ذَاتَ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">لَهَبٖ</span> Qalqalah kubra</span></li></ul></details>"], ["وَٱمۡرَأَتُ<span class=\"tj-ms\" data-r=\"ms\">هُۥ</span> حَ<span class=\"tj-gh\" data-r=\"gh\">مَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>لَةَ ٱلۡحَطَ<span class=\"tj-qk\" data-r=\"qk\">بِ</span>", "Wamra'atuhu hammalatal hathab", "dan (begitu pula) istrinya, pembawa kayu bakar (penyebar fitnah).", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">حَمَّالَةَ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡحَطَبِ</span> Qalqalah kubra</span></li></ul></details>"], ["<span class=\"tj-mt\" data-r=\"mt\">فِي</span> <span class=\"tj-mt\" data-r=\"mt\">جِي</span>دِ<span class=\"tj-mt\" data-r=\"mt\">هَا</span> حَ<span class=\"tj-qs\" data-r=\"qs\">بۡ</span><span class=\"tj-ib\" data-r=\"ib\">لٞ </span><span class=\"tj-gh\" data-r=\"gh\">مِّ</span><span class=\"tj-ib\" data-r=\"ib\">ن </span><span class=\"tj-gh\" data-r=\"gh\">مَّ</span>سَ<span class=\"tj-qk\" data-r=\"qk\">دِۭ</span>", "Fi jidiha hablum mim masad", "Di lehernya ada tali dari sabut yang dipintal.", "<details class=\"tjd\"><summary>Catatan tajwid (6)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">حَبۡلٞ</span> Qalqalah sughra</span></li><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">حَبۡلٞ مِّن</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِّن</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#0f8b8d\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِّن مَّسَدِۭ</span> Idgham bighunnah</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مَّسَدِۭ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مَّسَدِۭ</span> Qalqalah kubra</span></li></ul></details>"]]], ["ikhlas", "Al-Ikhlas", "Ikhlas", [["قُلۡ هُوَ ٱ<span class=\"tj-im\" data-r=\"im\">للَّ</span>هُ أَحَ<span class=\"tj-qk\" data-r=\"qk\">دٌ</span>", "Qul huwallahu ahad", "Katakanlah (Muhammad), “Dialah Allah, Yang Maha Esa.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱللَّهُ</span> Idgham mutamatsilain / mimi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَحَدٌ</span> Qalqalah kubra</span></li></ul></details>"], ["ٱ<span class=\"tj-im\" data-r=\"im\">للَّ</span>هُ ٱلصَّمَ<span class=\"tj-qk\" data-r=\"qk\">دُ</span>", "Allahush shamad", "Allah tempat meminta segala sesuatu.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#5b5fc7\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱللَّهُ</span> Idgham mutamatsilain / mimi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلصَّمَدُ</span> Qalqalah kubra</span></li></ul></details>"], ["لَمۡ يَلِ<span class=\"tj-qk\" data-r=\"qk\">دۡ</span> وَلَمۡ <span class=\"tj-mt\" data-r=\"mt\">يُو</span>لَ<span class=\"tj-qk\" data-r=\"qk\">دۡ</span>", "Lam yalid wa lam yulad", "(Dia) tidak beranak dan tidak pula diperanakkan.", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يَلِدۡ</span> Qalqalah kubra</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يُولَدۡ</span> Qalqalah kubra</span></li></ul></details>"], ["وَلَمۡ يَكُ<span class=\"tj-il\" data-r=\"il\">ن لَّ</span><span class=\"tj-ms\" data-r=\"ms\">هُۥ</span> كُفُوً<span class=\"tj-mi\" data-r=\"mi\">ا</span> أَحَ<span class=\"tj-qk\" data-r=\"qk\">دُۢ</span>", "Wa lam yakul lahu kufuwan ahad", "Dan tidak ada sesuatu yang setara dengan Dia.”", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#2f6fdb\"></i><span><span class=\"ar-kecil\" lang=\"ar\">يَكُن لَّهُۥ</span> Idgham bilaghunnah</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">أَحَدُۢ</span> Qalqalah kubra</span></li></ul></details>"]]], ["falaq", "Al-Falaq", "Waktu subuh", [["قُلۡ أَ<span class=\"tj-mt\" data-r=\"mt\">عُو</span>ذُ بِرَبِّ ٱلۡفَلَ<span class=\"tj-qk\" data-r=\"qk\">قِ</span>", "Qul a'udzu birabbil falaq", "Katakanlah, “Aku berlindung kepada Tuhan yang menguasai subuh (fajar),", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡفَلَقِ</span> Qalqalah kubra</span></li></ul></details>"], ["مِ<span class=\"tj-ik\" data-r=\"ik\">ن شَ</span>رِّ <span class=\"tj-mt\" data-r=\"mt\">مَا</span> خَلَ<span class=\"tj-qk\" data-r=\"qk\">قَ</span>", "Min syarri ma khalaq", "dari kejahatan (makhluk yang) Dia ciptakan,", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِن شَرِّ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">خَلَقَ</span> Qalqalah kubra</span></li></ul></details>"], ["وَمِ<span class=\"tj-ik\" data-r=\"ik\">ن شَ</span>رِّ <span class=\"tj-mt\" data-r=\"mt\">غَا</span>سِقٍ إِ<span class=\"tj-mt\" data-r=\"mt\">ذَا</span> وَقَ<span class=\"tj-qk\" data-r=\"qk\">بَ</span>", "Wa min syarri ghasiqin idza waqab", "dan dari kejahatan malam apabila telah gelap gulita,", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَمِن شَرِّ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَقَبَ</span> Qalqalah kubra</span></li></ul></details>"], ["وَمِ<span class=\"tj-ik\" data-r=\"ik\">ن شَ</span>رِّ ٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">فَّـٰثَٰ</span>تِ <span class=\"tj-mt\" data-r=\"mt\">فِي</span> ٱلۡعُقَ<span class=\"tj-qk\" data-r=\"qk\">دِ</span>", "Wa min syarrin naffatsati fil 'uqad", "dan dari kejahatan para penyihir yang meniup pada buhul-buhul (talinya),", "<details class=\"tjd\"><summary>Catatan tajwid (3)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَمِن شَرِّ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلنَّفَّـٰثَٰتِ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡعُقَدِ</span> Qalqalah kubra</span></li></ul></details>"], ["وَمِ<span class=\"tj-ik\" data-r=\"ik\">ن شَ</span>رِّ <span class=\"tj-mt\" data-r=\"mt\">حَا</span>سِدٍ إِ<span class=\"tj-mt\" data-r=\"mt\">ذَا</span> حَسَ<span class=\"tj-qk\" data-r=\"qk\">دَ</span>", "Wa min syarri hasidin idza hasad", "dan dari kejahatan orang yang dengki apabila dia dengki.”", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَمِن شَرِّ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#d6336c\"></i><span><span class=\"ar-kecil\" lang=\"ar\">حَسَدَ</span> Qalqalah kubra</span></li></ul></details>"]]], ["nas", "An-Nas", "Manusia", [["قُلۡ أَ<span class=\"tj-mt\" data-r=\"mt\">عُو</span>ذُ بِرَبِّ ٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سِ", "Qul a'udzu birabbin nas", "Katakanlah, “Aku berlindung kepada Tuhannya manusia,", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلنَّاسِ</span> Ghunnah (dengung)</span></li></ul></details>"], ["مَلِكِ ٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سِ", "Malikin nas", "Raja manusia,", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلنَّاسِ</span> Ghunnah (dengung)</span></li></ul></details>"], ["إِ<span class=\"tj-mt\" data-r=\"mt\">لَٰ</span>هِ ٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سِ", "Ilahin nas", "sembahan manusia,", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلنَّاسِ</span> Ghunnah (dengung)</span></li></ul></details>"], ["مِ<span class=\"tj-ik\" data-r=\"ik\">ن شَ</span>رِّ ٱلۡوَسۡ<span class=\"tj-mt\" data-r=\"mt\">وَا</span>سِ ٱلۡخَ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سِ", "Min syarril waswasil khannas", "dari kejahatan (bisikan) setan yang bersembunyi,", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#e08a1e\"></i><span><span class=\"ar-kecil\" lang=\"ar\">مِن شَرِّ</span> Ikhfa haqiqi</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡخَنَّاسِ</span> Ghunnah (dengung)</span></li></ul></details>"], ["ٱلَّ<span class=\"tj-mt\" data-r=\"mt\">ذِي</span> يُوَسۡوِسُ <span class=\"tj-mt\" data-r=\"mt\">فِي</span> صُ<span class=\"tj-mt\" data-r=\"mt\">دُو</span>رِ ٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سِ", "Alladzi yuwaswisu fi shudurin nas", "yang membisikkan (kejahatan) ke dalam dada manusia,", "<details class=\"tjd\"><summary>Catatan tajwid (1)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلنَّاسِ</span> Ghunnah (dengung)</span></li></ul></details>"], ["مِنَ ٱلۡجِ<span class=\"tj-gh\" data-r=\"gh\">نَّ</span>ةِ وَٱل<span class=\"tj-gh\" data-r=\"gh\">نَّ</span><span class=\"tj-mt\" data-r=\"mt\">ا</span>سِ", "Minal jinnati wan nas", "dari (golongan) jin dan manusia.”", "<details class=\"tjd\"><summary>Catatan tajwid (2)</summary><ul class=\"tj\"><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">ٱلۡجِنَّةِ</span> Ghunnah (dengung)</span></li><li><i class=\"dot\" style=\"background:#1f9d55\"></i><span><span class=\"ar-kecil\" lang=\"ar\">وَٱلنَّاسِ</span> Ghunnah (dengung)</span></li></ul></details>"]]]];
+
+let html = `<h2 id="kahf">Surah Al-Kahf ayat 1–10 <small>10 ayat</small></h2>
+<p class="catatan">Keutamaan: dianjurkan membaca sepuluh ayat pertama Al-Kahf, dan hadis menyebutnya sebagai perlindungan dari fitnah Dajjal (HR. Muslim). Membaca surah Al-Kahf pada hari Jumat juga dianjurkan.</p>` + KAHF.map(ayatHTML).join('');
+SURAH.forEach(([id, nama, arti, ayat]) => {
+html += `<h2 id="${id}">${nama} <small>${arti} · ${ayat.length} ayat</small></h2>` + ayat.map(ayatHTML).join('');
+});
+$isi = document.getElementById('isi');
+$isi.insertAdjacentHTML('beforeend', html);
+document.getElementById('menu').innerHTML = `<a class="doa-chip" href="#tajwid">Dasar tajwid</a><a class="doa-chip" href="#kahf">Al-Kahf 1–10</a>` + SURAH.map(([id, nama]) => `<a class="doa-chip" href="#${id}">${nama}</a>`).join('');
+</script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }</script>
+<script src="tajwid.js" defer></script>
+</body>
+</html>
