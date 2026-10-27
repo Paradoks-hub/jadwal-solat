@@ -3,9 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Doa &amp; Gerakan Salat</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Doa &amp; Gerakan Salat: Bacaan Salat, Qunut, Doa Mandi Wajib</title>
+<meta name="description" content="Bacaan salat dari takbir sampai salam, doa qunut, doa iftitah, niat mandi wajib, dan doa sebelum salam, lengkap dengan Arab, Latin, arti, dan animasi gerakannya.">
+<link rel="canonical" href="https://paradoks-hub.github.io/jadwal-solat/doa.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0f4a45">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="id_ID">
+<meta property="og:site_name" content="Jadwal Solat">
+<meta property="og:title" content="Doa &amp; Gerakan Salat: Bacaan Salat, Qunut, Doa Mandi Wajib">
+<meta property="og:description" content="Bacaan salat dari takbir sampai salam, doa qunut, doa iftitah, niat mandi wajib, dan doa sebelum salam, lengkap dengan Arab, Latin, arti, dan animasi gerakannya.">
+<meta property="og:url" content="https://paradoks-hub.github.io/jadwal-solat/doa.html">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="fonts/fonts.css">
+<script src="galat.js"></script>
 <style>
     :root {
         --ink: #16232a;
@@ -508,6 +522,8 @@ track.addEventListener('scroll', tandai, { passive: true });
 tandai();
 window.addEventListener('resize', tandai);
 if (document.fonts) document.fonts.ready.then(tandai);
+const lompat = location.hash.match(/^#s(\d+)$/);
+if (lompat && menu.children[lompat[1]]) setTimeout(() => menu.children[lompat[1]].click(), 150);
 if (!kurangGerak) requestAnimationFrame(putar);
 }
 
@@ -532,5 +548,6 @@ requestAnimationFrame(putar);
 
 window.onload = renderDoa;
 </script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }</script>
 </body>
 </html>
